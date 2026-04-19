@@ -719,7 +719,6 @@ function connectWS() {
       const sid=msg.payload.session.id;
       try{
         await sub(sid,'channel.cheer',{broadcaster_user_id:uid});
-        await sub(sid,'extension.bits_transaction.create',{extension_client_id:'c76fsghzngwflbmg06o6c9hj2ffub2', broadcaster_user_id:uid});
         await sub(sid,'channel.subscribe',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscription.message',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscription.gift',{broadcaster_user_id:uid});
@@ -736,10 +735,6 @@ function connectWS() {
       if(st==='channel.cheer'){
         const b=ev.bits, g=b>=500?HYPE_GAIN.bits_lg:b>=100?HYPE_GAIN.bits_md:HYPE_GAIN.bits_sm;
         const bUser=ev.user_name||'Anonymous'; addRevenue(b*RATES.bits,g,'bits','+'+b+' bits', bUser+' just gave '+b+' bits', bUser, b, b*RATES.bits, 0);
-      }
-      if(st==='extension.bits_transaction.create'){
-        const b=ev.bits_used, g=b>=500?HYPE_GAIN.bits_lg:b>=100?HYPE_GAIN.bits_md:HYPE_GAIN.bits_sm;
-        const bUser=ev.user_name||'Anonymous'; addRevenue(b*RATES.bits,g,'bits','⚡ +'+b+' bits', bUser+' used '+b+' Blerp bits!', bUser, b, b*RATES.bits, 0);
       }
       if(st==='channel.subscribe'&&!ev.is_gift){
         const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
