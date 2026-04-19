@@ -275,7 +275,7 @@ function connectEventSub(token) {
       const sessionId = msg.payload.session.id;
       // subscribe to channel point redemptions
       try {
-        await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+        const r = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
           method:'POST',
           headers:{
             'Client-Id':'c76fsghzngwflbmg06o6c9hj2ffub2',
@@ -285,11 +285,13 @@ function connectEventSub(token) {
           body: JSON.stringify({
             type:'channel.channel_points_custom_reward_redemption.add',
             version:'1',
-            condition:{ broadcaster_user_id:'716266770' },
+            condition:{ broadcaster_user_id:'716266770', user_id:'716266770' },
             transport:{ method:'websocket', session_id:sessionId }
           })
         });
-      } catch(err) {}
+        const d = await r.json();
+        console.log('EventSub redemption sub:', r.status, JSON.stringify(d).slice(0,100));
+      } catch(err) { console.log('EventSub error:', err); }
     }
 
     if(msg.metadata?.message_type === 'notification') {
@@ -457,6 +459,9 @@ document.addEventListener('click', (e) => {
 function sendIRC(text) {
   if(!ircConnected || !ircWs) return false;
   ircWs.send('PRIVMSG #asiandiva__ :' + text);
+  // local echo since Twitch doesn't echo your own messages back
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  addLogItem('AsianDiva__', text, '', '#FFD93D', false, t);
   return true;
 }
 
