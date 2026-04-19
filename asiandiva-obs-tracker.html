@@ -721,13 +721,18 @@ function connectWS() {
         await sub(sid,'channel.cheer',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscribe',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscription.gift',{broadcaster_user_id:uid});
-        await sub(sid,'channel.hype_train.begin',{broadcaster_user_id:uid});
-        await sub(sid,'channel.hype_train.progress',{broadcaster_user_id:uid});
-        await sub(sid,'channel.hype_train.end',{broadcaster_user_id:uid});
         connected=true; setStatus('live','Live — tracking');
-        htConnected=true;
-        BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
         startSessionTimer();
+        // try hype train separately so it doesn't break main connection
+        try {
+          await sub(sid,'channel.hype_train.begin',{broadcaster_user_id:uid});
+          await sub(sid,'channel.hype_train.progress',{broadcaster_user_id:uid});
+          await sub(sid,'channel.hype_train.end',{broadcaster_user_id:uid});
+          htConnected=true;
+          BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
+        } catch(htErr) {
+          BC.postMessage({type:'ht_status', state:'err', text:'Hype train scope missing'});
+        }
       }catch{
         setStatus('err','Auth failed — check credentials'); ws.close();
       }
