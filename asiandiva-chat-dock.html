@@ -157,11 +157,15 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
 
-// Read token from URL on startup
+// Read token from URL on startup and load emotes immediately
 (function() {
   const p = new URLSearchParams(window.location.search);
   const tok = p.get('token');
-  if(tok) window._chatToken = tok;
+  if(tok) {
+    window._chatToken = tok;
+    // load emotes right away so they're ready when chat starts
+    setTimeout(loadDockEmotes, 500);
+  }
 })();
 
 // ── IRC CONNECTION (read + send) ─────────────────────────────────
@@ -264,7 +268,7 @@ let dockChannelId = null;
 async function loadDockEmotes() {
   if(!window._chatToken) return;
 
-  // Get broadcaster's Twitch emotes using the API
+  // Get broadcaster's Twitch emotes
   try {
     const r = await fetch('https://api.twitch.tv/helix/chat/emotes?broadcaster_id=716266770', {
       headers: {
@@ -276,26 +280,35 @@ async function loadDockEmotes() {
       const d = await r.json();
       (d.data||[]).forEach(e => {
         dockEmoteMap[e.name] = e.images.url_1x;
+        // also store by ID for IRC emote tag lookup
+        if(e.id) dockEmoteById = dockEmoteById || {};
+        if(e.id) dockEmoteById[e.id] = e.images.url_1x;
       });
+      if(emotePickerOpen) renderEmoteGrid('');
     }
+  } catch(e) { console.log('emote load error', e); }
+
+  // BTTV global (for word matching in chat)
+  try {
+    const r = await fetch('https://api.betterttv.net/3/cached/emotes/global');
+    if(r.ok) { const d = await r.json(); d.forEach(e => { dockEmoteMap[e.code] = 'https://cdn.betterttv.net/emote/'+e.id+'/1x'; }); }
   } catch(e) {}
 
-  // Also load global Twitch emotes
+  // BTTV channel
   try {
-    const r = await fetch('https://api.twitch.tv/helix/chat/emotes/global', {
-      headers: {
-        'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2',
-        'Authorization': 'Bearer ' + window._chatToken
-      }
-    });
-    if(r.ok) {
-      const d = await r.json();
-      (d.data||[]).forEach(e => {
-        dockEmoteMap[e.name] = e.images.url_1x;
-      });
-    }
+    const cid = await fetch('https://decapi.me/twitch/id/asiandiva__').then(r=>r.text());
+    const r = await fetch('https://api.betterttv.net/3/cached/users/twitch/'+cid.trim());
+    if(r.ok) { const d = await r.json(); [...(d.channelEmotes||[]),...(d.sharedEmotes||[])].forEach(e => { dockEmoteMap[e.code]='https://cdn.betterttv.net/emote/'+e.id+'/1x'; }); }
+  } catch(e) {}
+
+  // 7TV global
+  try {
+    const r = await fetch('https://7tv.io/v3/emote-sets/global');
+    if(r.ok) { const d = await r.json(); (d.emotes||[]).forEach(e => { const f=e.data?.host?.files?.find(f=>f.name==='1x.webp')||e.data?.host?.files?.[0]; if(f) dockEmoteMap[e.name]='https:'+e.data.host.url+'/'+f.name; }); }
   } catch(e) {}
 }
+
+let dockEmoteById = {};
 
 function renderDockMessage(text, emoteTags) {
   // Twitch emotes from IRC tags
