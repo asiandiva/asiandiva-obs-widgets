@@ -158,6 +158,17 @@ const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
 
 // ── ALL VARIABLE DECLARATIONS UP FRONT ───────────────────────────
+let ircWs = null, ircConnected = false, ircToken = null;
+const DOCK_MENTION_WORDS = ['asiandiva__', 'asiandiva', 'dave', '@asiandiva__', '@asiandiva', '@dave'];
+const dockEmoteMap = {};
+let dockChannelId = null;
+let dockEmoteById = {};
+let emotePickerOpen = false;
+const BROADCASTER_ID = '716266770';
+let streamStartTime = null;
+let uptimeInterval = null;
+let activeCmd = -1;
+let filteredCmds = [];
 
 // Read token from URL on startup
 (function() {
