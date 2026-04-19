@@ -156,27 +156,15 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 <script>
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
-let emotesReady = false;
-let pendingMsgs  = [];
 
-function processMessage(username, text, emoteTags, userColor, isMention, t) {
-  const rendered = renderDockMessage(text, emoteTags);
-  addLogItem(username, rendered, userColor, isMention, t);
-}
-
-// Read token from URL on startup - load emotes then connect IRC
+// Read token from URL on startup
 (function() {
   const p = new URLSearchParams(window.location.search);
   const tok = p.get('token');
   if(tok) {
     window._chatToken = tok;
-    loadDockEmotes().then(() => {
-      emotesReady = true;
-      // flush any messages that arrived before emotes loaded
-      pendingMsgs.forEach(m => processMessage(m.u, m.text, m.et, m.uc, m.im, m.t));
-      pendingMsgs = [];
-      if(!ircConnected) connectIRC(tok);
-    });
+    loadDockEmotes();
+    connectIRC(tok);
   }
 })();
 
@@ -231,11 +219,12 @@ function connectIRC(token) {
           const userColor = color || colorForUser(username);
           const isMention = DOCK_MENTION_WORDS.some(w => text.toLowerCase().includes(w.toLowerCase()));
           const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-          if(emotesReady) {
-            processMessage(username, text, emoteTags, userColor, isMention, t);
-          } else {
-            pendingMsgs.push({u:username, text, et:emoteTags, uc:userColor, im:isMention, t});
-            addLogItem(username, escHtml(text), userColor, isMention, t);
+          const rendered = renderDockMessage(text, emoteTags);
+          addLogItem(username, rendered, userColor, isMention, t);
+          
+          // detect channel point redemptions via IRC tag
+          if(tags['custom-reward-id']) {
+            addEventItem('redemption', {user:username, reward:'Channel Point Redemption', msg:text}, t);
           }
         } catch(e) {}
       }
@@ -534,16 +523,8 @@ BC.onmessage = (e) => {
     window._chatToken = msg.token;
     fetchStreamInfo();
     setInterval(fetchStreamInfo, 60000);
-    if(!emotesReady) {
-      loadDockEmotes().then(() => {
-        emotesReady = true;
-        pendingMsgs.forEach(m => processMessage(m.u, m.text, m.et, m.uc, m.im, m.t));
-        pendingMsgs = [];
-        if(!ircConnected) connectIRC(msg.token);
-      });
-    } else if(!ircConnected) {
-      connectIRC(msg.token);
-    }
+    if(!ircConnected) connectIRC(msg.token);
+    if(Object.keys(dockEmoteMap).length === 0) loadDockEmotes();
   }
 
   if(msg.type === 'cleared') {
