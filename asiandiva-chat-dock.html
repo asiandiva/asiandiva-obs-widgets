@@ -157,6 +157,13 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
 
+// Read token from URL on startup
+(function() {
+  const p = new URLSearchParams(window.location.search);
+  const tok = p.get('token');
+  if(tok) window._chatToken = tok;
+})();
+
 // ── IRC CONNECTION (read + send) ─────────────────────────────────
 let ircWs = null, ircConnected = false, ircToken = null;
 const DOCK_MENTION_WORDS = ['asiandiva__', 'asiandiva', 'dave', '@asiandiva__', '@asiandiva', '@dave'];
@@ -181,6 +188,10 @@ function connectIRC(token) {
 
       if(line.includes('366') || line.includes('JOIN #asiandiva__')) {
         ircConnected = true;
+        // grab token from URL directly - no need to wait for BC
+        const urlParams = new URLSearchParams(window.location.search);
+        const tok = urlParams.get('token');
+        if(tok) window._chatToken = tok;
         loadDockEmotes().then(() => { if(emotePickerOpen) renderEmoteGrid(''); });
         const btn = document.getElementById('send-btn');
         if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
