@@ -56,6 +56,7 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .log-name{font-weight:800;font-size:30px;flex-shrink:0;white-space:nowrap;}
 .log-colon{color:var(--dim);flex-shrink:0;}
 .log-msg{flex:1;color:#c8d0f0;display:flex;align-items:center;flex-wrap:wrap;gap:2px;}
+.log-msg.is-action{font-style:italic;color:var(--purple);}
 .log-time{font-size:14px;color:var(--dim);flex-shrink:0;margin-left:4px;}
 .log-empty{padding:30px 20px;text-align:center;font-size:13px;color:var(--dim);font-style:italic;}
 
@@ -353,12 +354,14 @@ function parsePRIVMSG(line) {
     if(!username){const m=line.match(/:([^!]+)!/);if(m)username=m[1];}
     const mm=line.match(/PRIVMSG #\S+ :(.+)/);
     if(!mm||!username) return;
-    const text=mm[1].trim();
+    let text=mm[1].trim();
+    const isAction=text.startsWith('\x01ACTION ');
+    if(isAction) text=text.slice(8).replace('\x01','').trim();
     const color=tags['color']||colorFor(username);
     const emoteTags=tags['emotes']||'';
     const isMention=MENTION_WORDS.some(w=>text.toLowerCase().includes(w.toLowerCase()));
     const t=now();
-    addMsg(username,text,emoteTags,color,isMention,t);
+    addMsg(username,text,emoteTags,color,isMention,t,isAction);
     // first time chatter
     if(tags['first-msg']==='1') addEvent('firstchat',{user:username,color},t);
     // bits
@@ -395,14 +398,16 @@ function sendMessage() {
   const input=document.getElementById('chat-input');
   const text=input.value.trim();
   if(!text||!ircConnected) return;
-  ircWs.send('PRIVMSG #asiandiva__ :'+text);
-  addMsg('AsianDiva__',text,'','#FFD93D',false,now());
+  const isMe=text.startsWith('/me ');
+  const sendText=isMe?'\x01ACTION '+text.slice(4)+'\x01':text;
+  ircWs.send('PRIVMSG #asiandiva__ :'+sendText);
+  addMsg('AsianDiva__',isMe?text.slice(4):text,'','#FFD93D',false,now(),isMe);
   input.value='';
   hideCmdMenu();
 }
 
 // ── LOG FUNCTIONS ─────────────────────────────────────────────────
-function addMsg(username,rawText,emoteTags,color,isMention,time) {
+function addMsg(username,rawText,emoteTags,color,isMention,time,isAction) {
   document.getElementById('log-empty')?.remove();
   logCount++;
   document.getElementById('log-count').textContent=logCount+' msg'+(logCount!==1?'s':'');
@@ -417,7 +422,7 @@ function addMsg(username,rawText,emoteTags,color,isMention,time) {
   item.innerHTML=
     '<span class="log-name" style="color:'+(color||'#FFD93D')+'">'+esc(username)+'</span>'+
     '<span class="log-colon">:</span>'+
-    '<span class="log-msg">'+rendered+'</span>'+
+    '<span class="log-msg'+(isAction?' is-action':'')+'">'+rendered+'</span>'+
     '<span class="log-time">'+time+'</span>';
   list.appendChild(item);
   while(list.children.length>200) list.removeChild(list.firstChild);
