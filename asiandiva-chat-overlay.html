@@ -268,6 +268,22 @@ html { background: transparent; }
 
 <script>
 // ── SETUP ─────────────────────────────────────────────────────────
+// ── BROADCAST CHANNEL ────────────────────────────────────────────
+const BC = new BroadcastChannel('asiandiva-chat');
+
+// ── STATE ─────────────────────────────────────────────────────────
+let ws = null, connected = false, reconnTimer = null;
+let channel = '', logCount = 0, MAX_MSGS = 20;
+const MENTION_WORDS = ['asiandiva__', 'asiandiva', 'dave', '@asiandiva__', '@asiandiva', '@dave'];
+BC.onmessage = (e) => {
+  const msg = e.data;
+  if(msg.type === 'clear')    clearChat();
+  if(msg.type === 'test')     testMsg();
+};
+setInterval(() => { try { BC.postMessage({type:'ping'}); } catch(e){} }, 3000);
+
+window.addEventListener('load', launch);
+
 function launch() {
   channel = 'asiandiva__';
   setDot('conn', 'Connecting…');
