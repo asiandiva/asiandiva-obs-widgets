@@ -40,11 +40,6 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .title-text{font-size:12px;font-weight:700;color:#c8d0f0;line-height:1.4;}
 .title-input{display:none;width:100%;background:var(--bg2);border:1.5px solid var(--yellow);color:var(--text);padding:6px 8px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;outline:none;box-sizing:border-box;}
 
-/* pinned message */
-.pinned-msg{background:linear-gradient(135deg,rgba(255,217,61,0.12),rgba(255,107,157,0.08));border:1.5px solid rgba(255,217,61,0.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;display:none;}
-.pinned-lbl{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yellow);margin-bottom:5px;}
-.pinned-user{font-weight:800;font-size:13px;color:var(--yellow);}
-.pinned-text{font-size:13px;color:#c8d0f0;margin-top:3px;line-height:1.5;}
 
 /* chat log */
 .log-list{max-height:500px;overflow-y:auto;display:flex;flex-direction:column;}
@@ -133,9 +128,6 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
   </div>
 </div>
 
-<!-- PINNED MESSAGE -->
-<div class="pinned-msg" id="pinned-msg">
-  <div class="pinned-lbl">📌 Pinned Message</div>
   <div class="pinned-user" id="pinned-user"></div>
   <div class="pinned-text" id="pinned-text"></div>
 </div>
@@ -213,6 +205,27 @@ window.addEventListener('load', () => {
   }
 });
 
+// ── PINNED MESSAGE POLLING ────────────────────────────────────────
+let lastPinnedId = null;
+
+async function pollPinnedMessage(tok) {
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/channels/followed?user_id='+BROADCASTER+'&broadcaster_id='+BROADCASTER, {
+      headers:{'Client-Id':CLIENT_ID,'Authorization':'Bearer '+tok}
+    });
+  } catch(e) {}
+  // Poll chat settings for pinned messages
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/chat/settings?broadcaster_id='+BROADCASTER, {
+      headers:{'Client-Id':CLIENT_ID,'Authorization':'Bearer '+tok}
+    });
+    if(r.ok) {
+      // chat settings don't include pinned messages directly
+      // pinned messages come via IRC highlighted-message tag (already handled)
+    }
+  } catch(e){}
+}
+
 // ── BROADCAST CHANNEL ─────────────────────────────────────────────
 BC.onmessage = (e) => {
   const msg = e.data;
@@ -220,8 +233,6 @@ BC.onmessage = (e) => {
   if(msg.type === 'ping')    return;
   if(msg.type === 'status')  setChatDot(msg.state, msg.text);
   if(msg.type === 'cleared') clearLog();
-  if(msg.type === 'pinned')  showPinned(msg.username, msg.text);
-  if(msg.type === 'unpinned') hidePinned();
   if(msg.type === 'token' && !token) {
     token = msg.token;
     loadEmotes(token).then(() => reRenderAll());
@@ -471,13 +482,6 @@ function clearLog() {
 }
 
 // ── PINNED ────────────────────────────────────────────────────────
-function showPinned(user,text) {
-  const el=document.getElementById('pinned-msg');
-  el.style.display='block';
-  document.getElementById('pinned-user').textContent=user;
-  document.getElementById('pinned-text').textContent=text;
-}
-function hidePinned() { document.getElementById('pinned-msg').style.display='none'; }
 
 // ── STATUS DOTS ───────────────────────────────────────────────────
 function setOverlayDot(on) {
