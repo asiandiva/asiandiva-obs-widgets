@@ -176,7 +176,7 @@ let filteredCmds = [];
   const tok = p.get('token');
   if(tok) {
     window._chatToken = tok;
-    loadDockEmotes();
+    loadDockEmotes().then(() => reRenderAllMessages());
     connectIRC(tok);
   }
 })();
@@ -230,8 +230,7 @@ function connectIRC(token) {
           const userColor = color || colorForUser(username);
           const isMention = DOCK_MENTION_WORDS.some(w => text.toLowerCase().includes(w.toLowerCase()));
           const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-          const rendered = renderDockMessage(text, emoteTags);
-          addLogItem(username, rendered, userColor, isMention, t);
+          addLogItem(username, text, emoteTags, userColor, isMention, t);
           
           // detect channel point redemptions via IRC tag
           if(tags['custom-reward-id']) {
@@ -556,22 +555,43 @@ BC.onmessage = (e) => {
   }
 };
 
-function addLogItem(username, text, color, isMention, time) {
+// Store raw messages for re-rendering after emotes load
+const rawMsgs = [];
+
+function addLogItem(username, rawText, emoteTags, color, isMention, time) {
   document.getElementById('log-empty')?.remove();
   logCount++;
   document.getElementById('log-count').textContent = logCount.toLocaleString() + ' msg' + (logCount !== 1 ? 's' : '');
 
+  // store raw data for re-render
+  rawMsgs.push({username, rawText, emoteTags, color, isMention, time});
+  if(rawMsgs.length > 200) rawMsgs.shift();
+
+  const rendered = renderDockMessage(rawText, emoteTags);
   const list = document.getElementById('log-list');
   const item = document.createElement('div');
   item.className = 'log-item' + (isMention ? ' is-mention' : '');
+  item.dataset.idx = rawMsgs.length - 1;
   item.innerHTML =
     '<span class="log-name" style="color:' + (color||'#FFD93D') + '">' + escHtml(username) + '</span>' +
     '<span class="log-colon">:</span>' +
-    '<span class="log-msg" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">' + text + '</span>' +
+    '<span class="log-msg" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">' + rendered + '</span>' +
     '<span class="log-time">' + time + '</span>';
   list.appendChild(item);
   while(list.children.length > 200) list.removeChild(list.firstChild);
   list.scrollTop = list.scrollHeight;
+}
+
+function reRenderAllMessages() {
+  const list = document.getElementById('log-list');
+  const items = list.querySelectorAll('.log-item[data-idx]');
+  items.forEach(item => {
+    const idx = parseInt(item.dataset.idx);
+    const msg = rawMsgs[idx];
+    if(!msg) return;
+    const msgSpan = item.querySelector('.log-msg');
+    if(msgSpan) msgSpan.innerHTML = renderDockMessage(msg.rawText, msg.emoteTags);
+  });
 }
 
 function addEventItem(type, data, time) {
