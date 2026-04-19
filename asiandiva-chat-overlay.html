@@ -279,6 +279,9 @@ BC.onmessage = (e) => {
   const msg = e.data;
   if(msg.type === 'clear')    clearChat();
   if(msg.type === 'test')     testMsg();
+  if(msg.type === 'send_msg' && ws && ws.readyState === 1) {
+    ws.send('PRIVMSG #' + channel + ' :' + msg.text);
+  }
 };
 setInterval(() => { try { BC.postMessage({type:'ping'}); } catch(e){} }, 3000);
 
@@ -305,7 +308,14 @@ function connectIRC() {
 
   ws.onopen = () => {
     ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
-    ws.send('NICK justinfan' + Math.floor(Math.random() * 99999));
+    const p = new URLSearchParams(window.location.search);
+    const tok = p.get('token') || p.get('ht_token');
+    if(tok) {
+      ws.send('PASS oauth:' + tok);
+      ws.send('NICK asiandiva__');
+    } else {
+      ws.send('NICK justinfan' + Math.floor(Math.random() * 99999));
+    }
     ws.send('JOIN #' + channel);
   };
 
