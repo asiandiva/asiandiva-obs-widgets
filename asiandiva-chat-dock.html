@@ -383,9 +383,6 @@ document.addEventListener('click', (e) => {
 function sendIRC(text) {
   if(!ircConnected || !ircWs) return false;
   ircWs.send('PRIVMSG #asiandiva__ :' + text);
-  // local echo
-  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  addLogItem('AsianDiva__', renderDockMessage(text, ''), '#FFD93D', false, t);
   return true;
 }
 const BROADCASTER_ID = '716266770';
