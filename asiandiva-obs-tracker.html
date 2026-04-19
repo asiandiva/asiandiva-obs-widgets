@@ -720,6 +720,7 @@ function connectWS() {
       try{
         await sub(sid,'channel.cheer',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscribe',{broadcaster_user_id:uid});
+        await sub(sid,'channel.subscription.message',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscription.gift',{broadcaster_user_id:uid});
         connected=true; setStatus('live','Live — tracking');
         startSessionTimer();
@@ -738,6 +739,11 @@ function connectWS() {
       if(st==='channel.subscribe'&&!ev.is_gift){
         const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
         addRevenue(rate,HYPE_GAIN.sub,'sub','⭐ '+ev.user_name+' subbed!', ev.user_name+' just subscribed (Tier '+tier+')', ev.user_name, 0, rate, 1);
+      }
+      if(st==='channel.subscription.message'){
+        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
+        const months=ev.cumulative_months||1;
+        addRevenue(rate,HYPE_GAIN.sub,'sub','⭐ '+ev.user_name+' resubbed!', ev.user_name+' resubscribed for '+months+' months! (Tier '+tier+')', ev.user_name, 0, rate, 1);
       }
       if(st==='channel.subscription.gift'){
         const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
