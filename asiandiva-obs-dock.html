@@ -167,18 +167,16 @@ body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 <!-- TWITCH CONNECTION -->
 <div class="card">
   <div class="card-lbl">🔌 Twitch Connection</div>
-  <div id="tw-fields" class="conn-fields">
-    <input class="conn-input" id="in-client" type="text"     placeholder="Client ID"/>
-    <input class="conn-input" id="in-token"  type="password" placeholder="Access Token"/>
-    <input class="conn-input" id="in-uid"    type="text"     placeholder="Broadcaster ID"/>
-  </div>
-  <div id="tw-disc" style="display:none;"><button class="disc-btn" onclick="sendDisconnect()">✕ Disconnect</button></div>
+  <!-- hidden inputs still needed for sendConnect() logic -->
+  <input id="in-client" type="hidden"/>
+  <input id="in-token"  type="hidden"/>
+  <input id="in-uid"    type="hidden"/>
   <div class="btn-row">
-    <button class="btn-p" id="tw-btn" onclick="sendConnect()">⚡ Connect</button>
     <button class="btn-g" onclick="sendCmd('test_goal')">🎉 Test</button>
     <button class="btn-g" onclick="sendCmd('reset')">↺ Reset</button>
+    <button class="btn-g" onclick="sendDisconnect()" style="color:var(--pink);">✕ Disconnect</button>
   </div>
-  <div class="conn-status"><div class="wdot" id="tw-dot"></div><span id="tw-status">Not connected</span></div>
+  <div class="conn-status"><div class="wdot" id="tw-dot"></div><span id="tw-status">Connecting…</span></div>
 </div>
 
 <!-- HYPE TRAIN -->
