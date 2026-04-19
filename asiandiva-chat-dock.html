@@ -196,8 +196,7 @@ function connectIRC(token) {
         ircConnected = true;
         if(emotePickerOpen) renderEmoteGrid('');
         // debug: show emote map size
-        console.log('IRC connected. Emote map size:', Object.keys(dockEmoteMap).length);
-        console.log('Sample emotes:', Object.keys(dockEmoteMap).slice(0,5));
+      
         const btn = document.getElementById('send-btn');
         if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
         document.getElementById('chat-dot').className = 'wdot live';
@@ -313,8 +312,12 @@ async function loadDockEmotes() {
 let dockEmoteById = {};
 
 function renderDockMessage(text, emoteTags) {
-  console.log('renderDockMessage:', text, '| emoteTags:', emoteTags, '| emoteMapSize:', Object.keys(dockEmoteMap).length);
-  // Twitch emotes from IRC tags
+  // Log first 3 emote map entries to verify what URLs we have
+  if(Object.keys(dockEmoteMap).length > 0) {
+    const sample = Object.entries(dockEmoteMap).slice(0,2);
+    console.log('Emote map sample:', sample);
+  }
+  // Build emote position map from IRC tags
   const twitchPos = {};
   if(emoteTags) {
     emoteTags.split('/').forEach(part => {
@@ -322,18 +325,29 @@ function renderDockMessage(text, emoteTags) {
       if(!positions) return;
       positions.split(',').forEach(pos => {
         const [start, end] = pos.split('-').map(Number);
-        twitchPos[start] = { end, url: 'https://static-cdn.jtvnw.net/emoticons/v2/'+id+'/default/dark/1.0' };
+        // Use word at that position to look up in our emote map
+        const chars = [...text];
+        const word = chars.slice(start, end+1).join('');
+        twitchPos[start] = { end, word };
       });
     });
   }
 
+  // Render using positions if we have them
   if(Object.keys(twitchPos).length > 0) {
     let result = '', i = 0;
     const chars = [...text];
     while(i < chars.length) {
       if(twitchPos[i]) {
-        const {end, url} = twitchPos[i];
-        result += dockEmoteImg(url, chars.slice(i, end+1).join(''));
+        const {end, word} = twitchPos[i];
+        // Look up emote URL from our loaded map, or use Twitch CDN
+        const emoteId = emoteTags.split('/').find(p => {
+          const [id, pos] = p.split(':');
+          return pos && pos.split(',').some(r => r.split('-')[0] == i);
+        })?.split(':')[0];
+        const url = dockEmoteMap[word] || (emoteId ? 'https://static-cdn.jtvnw.net/emoticons/v2/'+emoteId+'/default/dark/1.0' : null);
+        if(url) result += dockEmoteImg(url, word);
+        else result += escHtml(word);
         i = end + 1;
       } else {
         result += escHtml(chars[i]); i++;
@@ -342,6 +356,7 @@ function renderDockMessage(text, emoteTags) {
     return result;
   }
 
+  // No IRC emote tags - use word matching from emote map (BTTV/7TV)
   return text.split(' ').map(word => {
     if(dockEmoteMap[word]) return dockEmoteImg(dockEmoteMap[word], word);
     return escHtml(word);
