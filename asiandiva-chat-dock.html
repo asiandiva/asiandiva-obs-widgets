@@ -128,9 +128,6 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
   <div style="position:relative;">
     <div class="cmd-menu" id="cmd-menu"></div>
 
-      <div id="emote-grid" style="display:flex;flex-wrap:wrap;gap:4px;max-height:180px;overflow-y:auto;">
-        <div style="font-size:11px;color:#4A2870;font-style:italic;padding:10px;">Connect to load emotes…</div>
-      </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:10px;padding:10px 12px;background:#0f0a1e;border-radius:10px;border:1px solid #2e1e50;align-items:center;">
     <input id="chat-input" type="text" placeholder="Type / for commands…" maxlength="500"
@@ -224,12 +221,12 @@ function connectIRC(token) {
           const userColor = color || colorForUser(username);
           const isMention = DOCK_MENTION_WORDS.some(w => text.toLowerCase().includes(w.toLowerCase()));
           const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-          addLogItem(username, text, emoteTags, userColor, isMention, t);
-          
-          // detect channel point redemptions via IRC tag
-          const rewardId = tagMatch ? (() => { const tgs={}; tagMatch[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tgs[k]=v.join('=');}); return tgs['custom-reward-id']; })() : null;
-          if(rewardId) {
+
+          // detect channel point redemptions BEFORE adding to log
+          if(tags && tags['custom-reward-id']) {
             addEventItem('redemption', {user:username, reward:'Channel Points Redeemed', msg:text}, t);
+          } else {
+            addLogItem(username, text, emoteTags, userColor, isMention, t);
           }
         } catch(e) {}
       }
@@ -512,8 +509,9 @@ BC.onmessage = (e) => {
     window._chatToken = msg.token;
     fetchStreamInfo();
     setInterval(fetchStreamInfo, 60000);
-    if(!ircConnected) connectIRC(msg.token);
-    if(Object.keys(dockEmoteMap).length === 0) loadDockEmotes();
+    if(Object.keys(dockEmoteMap).length === 0) {
+      loadDockEmotes().then(() => reRenderAllMessages());
+    }
   }
 
   if(msg.type === 'cleared') {
