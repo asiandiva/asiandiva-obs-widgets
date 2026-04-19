@@ -923,6 +923,8 @@ function setHtDot(state,text){
 // enter hype train — fade normal out, fade ht-mode in
 function enterHypeTrainMode(level,progress,goal,expiresAt){
   htActive=true; htCurrentLevel=level;
+  const pct=goal>0?Math.min((progress/goal)*100,100):0;
+  BC.postMessage({type:'ht_begin', level, pct});
   const inner=document.querySelector('.widget-inner');
   inner.style.opacity='0'; inner.style.pointerEvents='none';
   const htMode=document.getElementById('ht-mode');
@@ -943,6 +945,8 @@ function updateHypeTrainMode(level,progress,goal,expiresAt){
   htCurrentLevel=level;
   updateHypeTrainBar(level,progress,goal);
   if(expiresAt) startHtCountdown(expiresAt);
+  const pct=goal>0?Math.min((progress/goal)*100,100):0;
+  BC.postMessage({type:'ht_progress', level, pct});
 }
 
 function updateHypeTrainBar(level,progress,goal){
@@ -967,6 +971,7 @@ function showLevelUpCelebration(level){
 
 // end train — show congratulations then slowly fade to normal
 function endHypeTrainMode(level){
+  BC.postMessage({type:'ht_end', level});
   clearInterval(htCountdownInterval);
   document.getElementById('ht-countdown').textContent='—';
   document.getElementById('ht-countdown').className='ht-countdown';
