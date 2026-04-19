@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AsianDiva__ Dock</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --yellow: #FFD93D; --ydark: #C89A00; --pink: #FF6B9D;
+  --purple: #C77DFF; --green: #6EE7B7;
+  --bg: #0f0a1e; --bg2: #17102b; --bg3: #1e1438;
+  --border: #2e1e50; --text: #F5E6FF; --muted: #9B7BB8; --dim: #4A2870;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; }
+body {
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  color: var(--text);
+  overflow-y: auto;
+  padding: 12px;
+  min-height: 100vh;
+}
+body::-webkit-scrollbar { width:4px; }
+body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* ── HEADER ── */
+.dock-title {
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, var(--yellow), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  text-align: center; margin-bottom: 3px;
+}
+.dock-hint { font-size:0.55rem; color:var(--dim); letter-spacing:2px; text-transform:uppercase; text-align:center; margin-bottom:12px; }
+
+/* ── CARDS ── */
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+.card-lbl { font-size:0.55rem; font-weight:800; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; padding-bottom:7px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+
+/* ── STATS ROW ── */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.stat { background:var(--bg3); border:1px solid var(--border); border-radius:9px; padding:10px 6px; text-align:center; }
+.stat-v { font-family:'Fredoka One',sans-serif; font-size:1.3rem; line-height:1; margin-bottom:3px; transition:transform 0.15s, filter 0.15s; }
+.stat-v.bump { animation:bump 0.25s ease; }
+@keyframes bump { 0%{transform:scale(1)} 50%{transform:scale(1.25);filter:brightness(1.6)} 100%{transform:scale(1)} }
+.stat-l { font-size:0.5rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+
+/* ── REVENUE ── */
+.rev-num { font-family:'Fredoka One',sans-serif; font-size:2.2rem; color:var(--yellow); text-shadow:0 0 16px rgba(255,217,61,0.35); text-align:center; line-height:1; }
+.rev-sub { font-size:0.62rem; color:var(--muted); font-weight:700; text-align:center; margin-top:3px; }
+.rev-bar { height:7px; background:var(--bg); border-radius:4px; overflow:hidden; margin-top:10px; }
+.rev-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--ydark),var(--yellow),var(--pink)); transition:width 0.8s ease; width:0%; }
+.rev-rates { font-size:0.52rem; color:var(--dim); margin-top:6px; text-align:center; }
+
+/* ── HYPE ── */
+.hype-row { display:flex; align-items:center; gap:8px; }
+.hype-bar-wrap { flex:1; height:7px; background:var(--bg); border-radius:4px; overflow:hidden; }
+.hype-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--purple),var(--yellow),var(--pink)); transition:width 0.6s ease; width:0%; }
+.hype-badge { padding:3px 10px; border-radius:20px; font-size:0.58rem; font-weight:800; letter-spacing:1px; transition:all 0.4s; }
+.hype-badge.chill    { background:rgba(199,125,255,0.2); color:var(--purple); border:1px solid rgba(199,125,255,0.4); }
+.hype-badge.hyped    { background:rgba(255,217,61,0.2);  color:var(--yellow); border:1px solid rgba(255,217,61,0.5); }
+.hype-badge.overload { background:rgba(255,107,157,0.2); color:var(--pink);   border:1px solid rgba(255,107,157,0.5); animation:bpulse 0.7s infinite; }
+@keyframes bpulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* ── ACTIVITY LOG ── */
+.log-list { max-height:200px; overflow-y:auto; }
+.log-list::-webkit-scrollbar { width:3px; }
+.log-list::-webkit-scrollbar-thumb { background:var(--dim); border-radius:2px; }
+.log-item { display:flex; align-items:baseline; gap:7px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.78rem; animation:slide 0.2s ease; }
+.log-item:last-child { border:none; }
+@keyframes slide{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+.log-pill { padding:2px 7px; border-radius:20px; font-size:0.52rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; flex-shrink:0; white-space:nowrap; }
+.log-pill.bits { background:rgba(255,217,61,0.12); color:var(--ydark); border:1px solid rgba(255,217,61,0.25); }
+.log-pill.sub  { background:rgba(255,107,157,0.12); color:var(--pink);  border:1px solid rgba(255,107,157,0.25); }
+.log-pill.big  { background:rgba(199,125,255,0.12); color:var(--purple);border:1px solid rgba(199,125,255,0.25); }
+.log-name { font-weight:800; font-size:0.75rem; flex-shrink:0; }
+.log-msg  { flex:1; color:#c8d0f0; }
+.log-rev  { font-size:0.6rem; color:var(--green); font-weight:800; flex-shrink:0; }
+.log-time { font-size:0.52rem; color:var(--dim); flex-shrink:0; margin-left:3px; }
+.log-empty { padding:20px; text-align:center; font-size:0.68rem; color:var(--dim); font-style:italic; letter-spacing:1px; }
+.log-clear { font-size:0.52rem; color:var(--dim); cursor:pointer; font-weight:800; letter-spacing:1px; background:none; border:none; font-family:inherit; transition:color 0.2s; }
+.log-clear:hover { color:var(--pink); }
+
+/* ── CONNECTION SECTIONS ── */
+.conn-fields { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+.conn-input { width:100%; background:var(--bg); border:1.5px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:700; outline:none; transition:border-color 0.2s; }
+.conn-input:focus { border-color:var(--pink); }
+.conn-input::placeholder { color:var(--dim); font-size:0.68rem; }
+.disc-btn { width:100%; padding:8px; background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; cursor:pointer; margin-bottom:8px; transition:all 0.2s; }
+.disc-btn:hover { border-color:var(--pink); color:var(--pink); }
+.btn-row { display:flex; gap:7px; }
+.btn-p { flex:1; padding:10px; background:linear-gradient(135deg,var(--yellow),var(--pink)); border:none; border-radius:9px; color:#0f0a1e; font-family:'Fredoka One',sans-serif; font-size:0.9rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.btn-p:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(255,107,157,0.35); }
+.btn-g { flex:1; padding:10px; background:transparent; border:1.5px solid var(--border); border-radius:9px; color:var(--muted); font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.btn-g:hover { border-color:var(--pink); color:var(--pink); }
+.conn-status { display:flex; align-items:center; gap:7px; font-size:0.58rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-top:8px; padding:8px 10px; background:var(--bg); border-radius:8px; }
+.wdot { width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.3s; }
+.wdot.live { background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 2s infinite; }
+.wdot.conn { background:var(--yellow); animation:blink 0.5s infinite; }
+.wdot.err  { background:var(--pink); }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* overlay status indicator */
+.overlay-status { display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.55rem; color:var(--dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; padding:6px; background:var(--bg2); border-radius:8px; border:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<div class="dock-title">AsianDiva__ ✨</div>
+<div class="dock-hint">Private Dashboard · Viewers cannot see this</div>
+
+<!-- OVERLAY CONNECTION STATUS -->
+<div class="overlay-status">
+  <div class="wdot" id="overlay-dot"></div>
+  <span id="overlay-status-txt">Waiting for overlay…</span>
+</div>
+
+<!-- SESSION STATS -->
+<div class="card">
+  <div class="card-lbl">Session Stats</div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-v" id="d-bits" style="color:var(--yellow)">0</div><div class="stat-l">Total Bits</div></div>
+    <div class="stat"><div class="stat-v" id="d-subs" style="color:var(--pink)">0</div><div class="stat-l">Total Subs</div></div>
+    <div class="stat"><div class="stat-v" id="d-time" style="color:var(--green)">0:00</div><div class="stat-l">Connected</div></div>
+  </div>
+</div>
+
+<!-- REVENUE -->
+<div class="card">
+  <div class="card-lbl">Your Revenue (Private)</div>
+  <div class="rev-num" id="d-rev">$0.00</div>
+  <div class="rev-sub">of $100.00 goal</div>
+  <div class="rev-bar"><div class="rev-fill" id="d-rev-fill"></div></div>
+  <div class="rev-rates">Bits $0.01 · T1 ~$2.50 · T2 ~$5.00 · T3 ~$12.50</div>
+</div>
+
+<!-- HYPE -->
+<div class="card">
+  <div class="card-lbl">Hype Level</div>
+  <div class="hype-row">
+    <div class="hype-bar-wrap"><div class="hype-bar" id="d-hype-bar"></div></div>
+    <div class="hype-badge chill" id="d-hype-badge">😊 Chill</div>
+  </div>
+</div>
+
+<!-- ACTIVITY LOG -->
+<div class="card">
+  <div class="card-lbl">
+    <span>Recent Activity</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="d-log-count" style="color:var(--yellow);font-size:0.6rem;font-weight:800;">0 msgs</span>
+      <button class="log-clear" onclick="clearLog()">Clear</button>
+    </div>
+  </div>
+  <div class="log-list" id="d-log">
+    <div class="log-empty" id="d-log-empty">No activity yet this stream…</div>
+  </div>
+</div>
+
+<!-- TWITCH CONNECTION -->
+<div class="card">
+  <div class="card-lbl">🔌 Twitch Connection</div>
+  <div id="tw-fields" class="conn-fields">
+    <input class="conn-input" id="in-client" type="text"     placeholder="Client ID"/>
+    <input class="conn-input" id="in-token"  type="password" placeholder="Access Token"/>
+    <input class="conn-input" id="in-uid"    type="text"     placeholder="Broadcaster ID"/>
+  </div>
+  <div id="tw-disc" style="display:none;"><button class="disc-btn" onclick="sendDisconnect()">✕ Disconnect</button></div>
+  <div class="btn-row">
+    <button class="btn-p" id="tw-btn" onclick="sendConnect()">⚡ Connect</button>
+    <button class="btn-g" onclick="sendCmd('test_goal')">🎉 Test</button>
+    <button class="btn-g" onclick="sendCmd('reset')">↺ Reset</button>
+  </div>
+  <div class="conn-status"><div class="wdot" id="tw-dot"></div><span id="tw-status">Not connected</span></div>
+</div>
+
+<!-- HYPE TRAIN -->
+<div class="card">
+  <div class="card-lbl">🚂 Hype Train Mode</div>
+  <div id="ht-fields" class="conn-fields">
+    <input class="conn-input" id="ht-client" type="text"     placeholder="Client ID"/>
+    <input class="conn-input" id="ht-token"  type="password" placeholder="Access Token (channel:read:hype_train)"/>
+    <input class="conn-input" id="ht-uid"    type="text"     placeholder="Broadcaster ID"/>
+  </div>
+  <div id="ht-disc" style="display:none;"><button class="disc-btn" onclick="sendHtDisconnect()">✕ Disconnect hype train</button></div>
+  <div class="btn-row">
+    <button class="btn-p" id="ht-btn" onclick="sendHtConnect()">⚡ Connect</button>
+    <button class="btn-g" onclick="sendCmd('test_ht')">🚂 Test</button>
+  </div>
+  <div class="conn-status"><div class="wdot" id="ht-dot"></div><span id="ht-status">Not connected</span></div>
+</div>
+
+<script>
+// ── BROADCAST CHANNEL ─────────────────────────────────────────────
+const BC = new BroadcastChannel('asiandiva-tracker');
+let logCount = 0;
+
+BC.onmessage = (e) => {
+  const msg = e.data;
+
+  // overlay is alive
+  const od = document.getElementById('overlay-dot');
+  od.className = 'wdot live';
+  document.getElementById('overlay-status-txt').textContent = 'Overlay connected';
+
+  if(msg.type === 'revenue') {
+    document.getElementById('d-rev').textContent = msg.display;
+    document.getElementById('d-rev-fill').style.width = Math.round(msg.pct) + '%';
+  }
+
+  if(msg.type === 'hype') {
+    document.getElementById('d-hype-bar').style.width = Math.round(msg.pct) + '%';
+    const b = document.getElementById('d-hype-badge');
+    b.textContent = msg.badge; b.className = 'hype-badge ' + msg.cls;
+  }
+
+  if(msg.type === 'stats') {
+    bumpVal('d-bits', msg.bits.toLocaleString());
+    bumpVal('d-subs', msg.subs.toString());
+  }
+
+  if(msg.type === 'timer') {
+    document.getElementById('d-time').textContent = msg.text;
+  }
+
+  if(msg.type === 'activity') {
+    addLogItem(msg.pill, msg.user, msg.desc, msg.rev, msg.isBig);
+  }
+
+  if(msg.type === 'status') {
+    setTwDot(msg.state, msg.text);
+    if(msg.state === 'live') {
+      document.getElementById('tw-fields').style.display = 'none';
+      document.getElementById('tw-disc').style.display   = 'block';
+      document.getElementById('tw-btn').style.display    = 'none';
+    } else if(msg.state === 'off') {
+      document.getElementById('tw-fields').style.display = 'flex';
+      document.getElementById('tw-disc').style.display   = 'none';
+      document.getElementById('tw-btn').style.display    = 'block';
+    }
+  }
+
+  if(msg.type === 'ht_status') {
+    setHtDot(msg.state, msg.text);
+    if(msg.state === 'live') {
+      document.getElementById('ht-fields').style.display = 'none';
+      document.getElementById('ht-disc').style.display   = 'block';
+      document.getElementById('ht-btn').style.display    = 'none';
+    } else if(msg.state === 'off') {
+      document.getElementById('ht-fields').style.display = 'flex';
+      document.getElementById('ht-disc').style.display   = 'none';
+      document.getElementById('ht-btn').style.display    = 'block';
+    }
+  }
+
+  if(msg.type === 'reset_done') {
+    document.getElementById('d-rev').textContent = '$0.00';
+    document.getElementById('d-rev-fill').style.width = '0%';
+    document.getElementById('d-hype-bar').style.width = '0%';
+    const b = document.getElementById('d-hype-badge');
+    b.textContent = '😊 Chill'; b.className = 'hype-badge chill';
+    document.getElementById('d-bits').textContent = '0';
+    document.getElementById('d-subs').textContent = '0';
+    document.getElementById('d-time').textContent = '0:00';
+    clearLog();
+  }
+};
+
+// ── SEND COMMANDS TO OVERLAY ──────────────────────────────────────
+function sendConnect() {
+  const clientId = document.getElementById('in-client').value.trim();
+  const token    = document.getElementById('in-token').value.trim().replace(/^oauth:/,'');
+  const uid      = document.getElementById('in-uid').value.trim();
+  if(!clientId||!token||!uid) { alert('Fill in all three fields!'); return; }
+  BC.postMessage({ type:'connect', clientId, token, uid });
+  setTwDot('conn', 'Connecting…');
+}
+
+function sendDisconnect() {
+  BC.postMessage({ type:'disconnect' });
+}
+
+function sendHtConnect() {
+  const clientId = document.getElementById('ht-client').value.trim();
+  const token    = document.getElementById('ht-token').value.trim().replace(/^oauth:/,'');
+  const uid      = document.getElementById('ht-uid').value.trim();
+  if(!clientId||!token||!uid) { alert('Fill in all three fields!'); return; }
+  BC.postMessage({ type:'connect_ht', clientId, token, uid });
+  setHtDot('conn', 'Connecting…');
+}
+
+function sendHtDisconnect() {
+  BC.postMessage({ type:'disconnect_ht' });
+}
+
+function sendCmd(type) {
+  BC.postMessage({ type });
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────
+function bumpVal(id, val) {
+  const el = document.getElementById(id);
+  el.textContent = val;
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 250);
+}
+
+function addLogItem(pill, user, desc, rev, isBig) {
+  document.getElementById('d-log-empty')?.remove();
+  logCount++;
+  document.getElementById('d-log-count').textContent = logCount + ' msg' + (logCount !== 1 ? 's' : '');
+  const list = document.getElementById('d-log');
+  const t    = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  const pillCls = isBig ? 'big' : pill;
+  const pillTxt = isBig ? '⭐ BIG' : pill === 'bits' ? 'BITS' : 'SUB';
+  const nameColor = pill === 'bits' ? 'var(--yellow)' : 'var(--pink)';
+  const item = document.createElement('div');
+  item.className = 'log-item';
+  item.innerHTML =
+    '<span class="log-pill '+pillCls+'">'+pillTxt+'</span>'+
+    '<span class="log-name" style="color:'+nameColor+'">'+user+'</span>'+
+    '<span class="log-msg"> '+desc+'</span>'+
+    '<span class="log-rev">'+rev+'</span>'+
+    '<span class="log-time">'+t+'</span>';
+  list.prepend(item);
+  while(list.children.length > 50) list.removeChild(list.lastChild);
+  list.scrollTop = 0;
+}
+
+function clearLog() {
+  logCount = 0;
+  document.getElementById('d-log-count').textContent = '0 msgs';
+  document.getElementById('d-log').innerHTML = '<div class="log-empty" id="d-log-empty">No activity yet this stream…</div>';
+}
+
+function setTwDot(state, text) {
+  document.getElementById('tw-dot').className = 'wdot' + (state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
+  document.getElementById('tw-status').textContent = text;
+}
+
+function setHtDot(state, text) {
+  document.getElementById('ht-dot').className = 'wdot' + (state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
+  document.getElementById('ht-status').textContent = text;
+}
+</script>
+</body>
+</html>
