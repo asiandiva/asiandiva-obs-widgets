@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>AsianDiva Chat Dock</title>
+<title>Dave's Chat</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -13,97 +13,122 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;}
-body{background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);overflow-y:auto;padding:12px;min-height:100vh;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);overflow-y:auto;padding:12px;}
 body::-webkit-scrollbar{width:4px;}
 body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-.dock-title{font-family:'Fredoka One',sans-serif;font-size:1.2rem;background:linear-gradient(135deg,var(--yellow),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:3px;}
-.dock-hint{font-size:0.55rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:12px;}
+.dock-title{font-family:'Fredoka One',sans-serif;font-size:1.2rem;background:linear-gradient(135deg,var(--yellow),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:12px;}
+
+.overlay-status{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding:6px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);}
 
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
-.card-lbl{font-size:0.55rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-lbl{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 
-.overlay-status{display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.55rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding:6px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);}
+/* stream info */
+.stat-boxes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.stat-box{border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;border:1px solid;}
+.stat-box.viewers{background:rgba(255,217,61,0.06);border-color:rgba(255,217,61,0.25);}
+.stat-box.uptime{background:rgba(110,231,183,0.06);border-color:rgba(110,231,183,0.25);}
+.stat-num{font-family:'Fredoka One',sans-serif;font-size:1.1rem;line-height:1;}
+.stat-lbl{font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.title-wrap{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;}
+.title-lbl{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.title-lbl span{font-size:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.edit-btn{font-size:8px;font-weight:800;background:transparent;border:1px solid var(--border);border-radius:5px;color:var(--muted);padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;}
+.edit-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.save-btn{font-size:8px;font-weight:800;background:rgba(255,217,61,0.15);border:1px solid var(--yellow);border-radius:5px;color:var(--yellow);padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;display:none;}
+.title-text{font-size:12px;font-weight:700;color:#c8d0f0;line-height:1.4;}
+.title-input{display:none;width:100%;background:var(--bg2);border:1.5px solid var(--yellow);color:var(--text);padding:6px 8px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;outline:none;box-sizing:border-box;}
+
+/* pinned message */
+.pinned-msg{background:linear-gradient(135deg,rgba(255,217,61,0.12),rgba(255,107,157,0.08));border:1.5px solid rgba(255,217,61,0.4);border-radius:10px;padding:10px 12px;margin-bottom:10px;display:none;}
+.pinned-lbl{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--yellow);margin-bottom:5px;}
+.pinned-user{font-weight:800;font-size:13px;color:var(--yellow);}
+.pinned-text{font-size:13px;color:#c8d0f0;margin-top:3px;line-height:1.5;}
 
 /* chat log */
-.log-list{max-height:380px;overflow-y:auto;display:flex;flex-direction:column;}
+.log-list{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;}
 .log-list::-webkit-scrollbar{width:3px;}
 .log-list::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
-.log-item{display:flex;align-items:baseline;gap:6px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.88rem;animation:slide 0.2s ease;word-break:break-word;}
+.log-item{display:flex;align-items:baseline;gap:6px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;word-break:break-word;}
 .log-item:last-child{border:none;}
 .log-item.is-mention{background:rgba(255,217,61,0.08);border-radius:6px;padding:8px 6px;margin:2px 0;}
-@keyframes slide{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
-.log-name{font-weight:800;font-size:0.85rem;flex-shrink:0;white-space:nowrap;}
-.log-colon{color:var(--dim);flex-shrink:0;font-size:0.8rem;}
-.log-msg{flex:1;color:#c8d0f0;}
-.log-time{font-size:0.65rem;color:var(--dim);flex-shrink:0;margin-left:4px;white-space:nowrap;}
-.log-empty{padding:30px 20px;text-align:center;font-size:0.8rem;color:var(--dim);font-style:italic;}
+.log-name{font-weight:800;font-size:12px;flex-shrink:0;white-space:nowrap;}
+.log-colon{color:var(--dim);flex-shrink:0;}
+.log-msg{flex:1;color:#c8d0f0;display:flex;align-items:center;flex-wrap:wrap;gap:2px;}
+.log-time{font-size:10px;color:var(--dim);flex-shrink:0;margin-left:4px;}
+.log-empty{padding:30px 20px;text-align:center;font-size:13px;color:var(--dim);font-style:italic;}
 
-/* controls */
-.conn-status{display:flex;align-items:center;gap:7px;font-size:0.58rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;}
-.wdot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.3s;}
+/* event items */
+.event-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin:4px 0;font-size:13px;font-weight:700;}
+.event-item.sub{background:rgba(255,107,157,0.1);border:1px solid rgba(255,107,157,0.25);}
+.event-item.giftsub{background:rgba(199,125,255,0.1);border:1px solid rgba(199,125,255,0.25);}
+.event-item.raid{background:rgba(255,217,61,0.1);border:1px solid rgba(255,217,61,0.3);}
+.event-item.bits{background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.25);}
+.event-item.firstchat{background:rgba(55,138,221,0.1);border:1px solid rgba(55,138,221,0.25);}
+.event-icon{font-size:14px;flex-shrink:0;}
+.event-text{flex:1;color:var(--text);line-height:1.4;}
+.event-name{font-weight:800;}
+.event-time{font-size:10px;color:var(--dim);flex-shrink:0;}
+
+/* input */
+.conn-status{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;}
+.wdot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;}
 .wdot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s infinite;}
 .wdot.conn{background:var(--yellow);animation:blink 0.5s infinite;}
 .wdot.err{background:var(--pink);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 
-.btn-row{display:flex;gap:7px;}
-.btn-g{flex:1;padding:9px;background:transparent;border:1.5px solid var(--border);border-radius:9px;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
-.btn-g:hover{border-color:var(--pink);color:var(--pink);}
+/* clear btn */
+.clear-btn{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:2px 8px;cursor:pointer;font-family:'Nunito',sans-serif;}
+.clear-btn:hover{border-color:var(--pink);color:var(--pink);}
 
-.slider-row{display:flex;align-items:center;gap:10px;font-size:0.65rem;color:var(--muted);font-weight:800;}
-.slider-row input[type=range]{flex:1;accent-color:var(--yellow);}
-.slider-val{color:var(--yellow);font-weight:800;min-width:20px;text-align:right;}
+/* slash command menu */
+.cmd-menu{display:none;position:absolute;bottom:100%;left:0;right:0;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;margin-bottom:6px;overflow:hidden;z-index:100;box-shadow:0 -8px 24px rgba(0,0,0,0.4);}
+.cmd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;}
+.cmd-item:last-child{border:none;}
+.cmd-item:hover,.cmd-item.active{background:rgba(255,217,61,0.08);}
+.cmd-name{font-family:'Fredoka One',sans-serif;font-size:14px;color:var(--yellow);flex-shrink:0;}
+.cmd-desc{font-size:11px;font-weight:700;color:var(--muted);}
+.cmd-usage{font-size:10px;color:var(--dim);font-weight:700;margin-left:auto;flex-shrink:0;}
 </style>
 </head>
 <body>
 
 <div class="dock-title">Dave's Chat 💬</div>
 
-
 <div class="overlay-status">
   <div class="wdot" id="overlay-dot"></div>
   <span id="overlay-txt">Waiting for overlay…</span>
 </div>
 
-<!-- CHAT LOG -->
 <!-- STREAM INFO -->
-<div style="background:#17102b;border:1px solid #2e1e50;border-radius:12px;padding:10px 12px;margin-bottom:10px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-    <span style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#9B7BB8;">📡 Stream Info</span>
-    <span id="stream-live-badge" style="display:none;background:rgba(255,107,157,0.2);color:#FF6B9D;border:1px solid rgba(255,107,157,0.4);border-radius:20px;padding:1px 8px;font-size:9px;letter-spacing:1px;">● LIVE</span>
+<div class="card">
+  <div class="card-lbl">
+    <span>📡 Stream Info</span>
+    <span id="live-badge" style="display:none;background:rgba(255,107,157,0.2);color:var(--pink);border:1px solid rgba(255,107,157,0.4);border-radius:20px;padding:1px 8px;font-size:9px;letter-spacing:1px;">● LIVE</span>
   </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-    <div style="background:#1a0a2e;border:1.5px solid rgba(255,217,61,0.3);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
-      <span style="font-size:14px;flex-shrink:0;">👁</span>
-      <div>
-        <div id="viewer-count" style="font-family:'Fredoka One',sans-serif;font-size:1.1rem;line-height:1;color:#FFD93D;">—</div>
-        <div style="font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#9B7BB8;margin-top:2px;">Viewers</div>
-      </div>
+  <div class="stat-boxes">
+    <div class="stat-box viewers">
+      <span style="font-size:14px;">👁</span>
+      <div><div class="stat-num" id="viewer-count" style="color:var(--yellow);">—</div><div class="stat-lbl">Viewers</div></div>
     </div>
-    <div style="background:#1a0a2e;border:1.5px solid rgba(110,231,183,0.3);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
-      <span style="font-size:14px;flex-shrink:0;">⏱</span>
-      <div>
-        <div id="stream-uptime" style="font-family:'Fredoka One',sans-serif;font-size:1.1rem;line-height:1;color:#6EE7B7;">—</div>
-        <div style="font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#9B7BB8;margin-top:2px;">Uptime</div>
-      </div>
+    <div class="stat-box uptime">
+      <span style="font-size:14px;">⏱</span>
+      <div><div class="stat-num" id="stream-uptime" style="color:var(--green);">—</div><div class="stat-lbl">Uptime</div></div>
     </div>
   </div>
-
-  <div style="background:#0f0a1e;border:1px solid #2e1e50;border-radius:8px;padding:8px 10px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <span style="font-size:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#9B7BB8;">Stream Title</span>
+  <div class="title-wrap">
+    <div class="title-lbl">
+      <span>Stream Title</span>
       <div style="display:flex;gap:4px;">
-        <button id="edit-btn" onclick="editTitle()" style="font-size:8px;font-weight:800;background:transparent;border:1px solid #2e1e50;border-radius:5px;color:#9B7BB8;padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;">✏️ Edit</button>
-        <button id="save-btn" onclick="saveTitle()" style="display:none;font-size:8px;font-weight:800;background:rgba(255,217,61,0.15);border:1px solid #FFD93D;border-radius:5px;color:#FFD93D;padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;">💾 Save</button>
-        <button id="cancel-btn" onclick="cancelEdit()" style="display:none;font-size:8px;font-weight:800;background:transparent;border:1px solid #2e1e50;border-radius:5px;color:#9B7BB8;padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;">✕</button>
+        <button class="edit-btn" id="edit-btn" onclick="editTitle()">✏️ Edit</button>
+        <button class="save-btn" id="save-btn" onclick="saveTitle()">💾 Save</button>
+        <button class="save-btn" id="cancel-btn" onclick="cancelEdit()" style="background:transparent;border-color:var(--border);color:var(--muted);">✕</button>
       </div>
     </div>
-    <div id="stream-title" style="font-size:12px;font-weight:700;color:#c8d0f0;line-height:1.4;">Not live</div>
-    <input id="title-input" type="text" maxlength="140" placeholder="Enter stream title…"
-      style="display:none;width:100%;background:#17102b;border:1.5px solid #FFD93D;color:#F5E6FF;padding:6px 8px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;outline:none;box-sizing:border-box;"
-      onkeydown="if(event.key==='Enter') saveTitle()"/>
+    <div class="title-text" id="stream-title">Not live</div>
+    <input class="title-input" id="title-input" type="text" maxlength="140" placeholder="Enter stream title…" onkeydown="if(event.key==='Enter') saveTitle()"/>
   </div>
 </div>
 
@@ -114,674 +139,462 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
   <div class="pinned-text" id="pinned-text"></div>
 </div>
 
+<!-- CHAT LOG -->
 <div class="card">
   <div class="card-lbl">
     <span>📋 Chat Log</span>
     <div style="display:flex;align-items:center;gap:8px;">
-      <span id="log-count" style="color:var(--yellow);font-size:0.6rem;font-weight:800;">0 msgs</span>
-      <button onclick="sendClear()" style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid #2e1e50;border-radius:6px;color:#9B7BB8;padding:2px 8px;cursor:pointer;font-family:'Nunito',sans-serif;">🗑 Clear</button>
+      <span id="log-count" style="color:var(--yellow);font-size:10px;font-weight:800;">0 msgs</span>
+      <button class="clear-btn" onclick="clearLog()">🗑 Clear</button>
     </div>
   </div>
   <div class="log-list" id="log-list">
     <div class="log-empty" id="log-empty">Waiting for chat…</div>
   </div>
-  <div style="position:relative;">
+  <div style="position:relative;margin-top:10px;">
     <div class="cmd-menu" id="cmd-menu"></div>
-
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px;padding:10px 12px;background:#0f0a1e;border-radius:10px;border:1px solid #2e1e50;align-items:center;">
-    <input id="chat-input" type="text" placeholder="Type / for commands…" maxlength="500"
-      oninput="handleInput(this.value)"
-      onkeydown="handleKeydown(event)"
-      style="flex:1;background:transparent;border:none;color:#F5E6FF;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;outline:none;"/>
-    <button id="send-btn" onclick="sendMessage()" disabled
-      style="padding:7px 14px;background:#17102b;border:1px solid #2e1e50;border-radius:8px;color:#FFD93D;font-family:'Fredoka One',sans-serif;font-size:0.8rem;letter-spacing:1px;cursor:pointer;flex-shrink:0;opacity:0.3;transition:all 0.2s;">Send</button>
+    <div style="display:flex;gap:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);align-items:center;">
+      <input id="chat-input" type="text" placeholder="Type / for commands…" maxlength="500"
+        oninput="handleInput(this.value)" onkeydown="handleKeydown(event)"
+        style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;outline:none;"/>
+      <button id="send-btn" onclick="sendMessage()" disabled
+        style="padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--yellow);font-family:'Fredoka One',sans-serif;font-size:13px;cursor:pointer;flex-shrink:0;opacity:0.3;transition:all 0.2s;">Send</button>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:7px;font-size:0.58rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:8px;">
+  <div class="conn-status">
     <div class="wdot" id="chat-dot"></div>
     <span id="chat-status">Not connected</span>
   </div>
 </div>
 
 <script>
-const BC = new BroadcastChannel('asiandiva-chat');
-let logCount = 0;
+// ── ALL VARIABLES ─────────────────────────────────────────────────
+const BC            = new BroadcastChannel('asiandiva-chat');
+const BROADCASTER   = '716266770';
+const CLIENT_ID     = 'c76fsghzngwflbmg06o6c9hj2ffub2';
+const MENTION_WORDS = ['asiandiva__','asiandiva','dave','@asiandiva__','@asiandiva','@dave'];
+const COMMANDS = [
+  {name:'/ban',desc:'Ban a user',usage:'/ban [user]'},
+  {name:'/unban',desc:'Unban a user',usage:'/unban [user]'},
+  {name:'/timeout',desc:'Timeout a user',usage:'/timeout [user] [sec]'},
+  {name:'/slow',desc:'Slow mode',usage:'/slow [seconds]'},
+  {name:'/slowoff',desc:'Slow mode off',usage:'/slowoff'},
+  {name:'/subscribers',desc:'Subs only mode',usage:'/subscribers'},
+  {name:'/emoteonly',desc:'Emote only mode',usage:'/emoteonly'},
+  {name:'/clear',desc:'Clear chat',usage:'/clear'},
+  {name:'/raid',desc:'Raid a channel',usage:'/raid [channel]'},
+  {name:'/unraid',desc:'Cancel raid',usage:'/unraid'},
+  {name:'/shoutout',desc:'Shoutout a user',usage:'/shoutout [user]'},
+  {name:'/me',desc:'Action message',usage:'/me [message]'},
+];
 
-// ── ALL VARIABLE DECLARATIONS UP FRONT ───────────────────────────
-let ircWs = null, ircConnected = false, ircToken = null;
-const DOCK_MENTION_WORDS = ['asiandiva__', 'asiandiva', 'dave', '@asiandiva__', '@asiandiva', '@dave'];
-const dockEmoteMap = {};
-let dockChannelId = null;
-let dockEmoteById = {};
-let emotePickerOpen = false;
-const BROADCASTER_ID = '716266770';
-let streamStartTime = null;
-let uptimeInterval = null;
-let activeCmd = -1;
-let filteredCmds = [];
+let token         = '';
+let ircWs         = null;
+let ircConnected  = false;
+let ircToken      = null;
+let logCount      = 0;
+let streamStart   = null;
+let uptimeTimer   = null;
+let activeCmd     = -1;
+let filteredCmds  = [];
+const emoteMap    = {};
+const rawMsgs     = [];
 
-// Read token from URL on startup
-(function() {
+// ── STARTUP ───────────────────────────────────────────────────────
+window.addEventListener('load', () => {
   const p = new URLSearchParams(window.location.search);
-  const tok = p.get('token');
-  if(tok) {
-    window._chatToken = tok;
-    loadDockEmotes().then(() => reRenderAllMessages());
-    connectIRC(tok);
-    connectEventSub(tok);
+  token = p.get('token') || '';
+  if(token) {
+    loadEmotes(token).then(() => reRenderAll());
+    connectIRC(token);
+    fetchStreamInfo(token);
+    setInterval(() => fetchStreamInfo(token), 60000);
   }
-})();
+});
 
-// ── IRC CONNECTION (read + send) ─────────────────────────────────
+// ── BROADCAST CHANNEL ─────────────────────────────────────────────
+BC.onmessage = (e) => {
+  const msg = e.data;
+  setOverlayDot(true);
+  if(msg.type === 'ping')    return;
+  if(msg.type === 'status')  setChatDot(msg.state, msg.text);
+  if(msg.type === 'cleared') clearLog();
+  if(msg.type === 'pinned')  showPinned(msg.username, msg.text);
+  if(msg.type === 'unpinned') hidePinned();
+  if(msg.type === 'token' && !token) {
+    token = msg.token;
+    loadEmotes(token).then(() => reRenderAll());
+    connectIRC(token);
+    fetchStreamInfo(token);
+    setInterval(() => fetchStreamInfo(token), 60000);
+  }
+};
+setInterval(() => {
+  try { BC.postMessage({type:'ping'}); setOverlayDot(true); } catch(e){}
+}, 3000);
 
-function connectIRC(token) {
-  ircToken = token;
-  if(ircWs) { ircWs.onclose = null; ircWs.close(); }
-  ircWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-
-  ircWs.onopen = () => {
-    ircWs.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
-    ircWs.send('PASS oauth:' + token);
-    ircWs.send('NICK asiandiva__');
-    ircWs.send('JOIN #asiandiva__');
-  };
-
-  ircWs.onmessage = (e) => {
-    const lines = e.data.split('\r\n');
-    lines.forEach(line => {
-      if(!line) return;
-      if(line.startsWith('PING')) { ircWs.send('PONG :tmi.twitch.tv'); return; }
-
-      if(line.includes('366') || line.includes('JOIN #asiandiva__')) {
-        ircConnected = true;
-        if(emotePickerOpen) renderEmoteGrid('');
-        // debug: show emote map size
-      
-        const btn = document.getElementById('send-btn');
-        if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
-        document.getElementById('chat-dot').className = 'wdot live';
-        document.getElementById('chat-status').textContent = 'Live · #asiandiva__';
-      }
-
-      if(line.includes('PRIVMSG')) {
-        try {
-          const tagMatch = line.match(/^@([^ ]+)/);
-          let username='', color='', emoteTags='';
-          if(tagMatch) {
-            const tags={};
-            tagMatch[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tags[k]=v.join('=');});
-            username = tags['display-name'] || '';
-            color    = tags['color'] || '';
-            emoteTags = tags['emotes'] || '';
-          }
-          if(!username) { const m=line.match(/:([^!]+)!/); if(m) username=m[1]; }
-          const msgM = line.match(/PRIVMSG #\S+ :(.+)/);
-          if(!msgM || !username) return;
-          const text = msgM[1].trim();
-          const userColor = color || colorForUser(username);
-          const isMention = DOCK_MENTION_WORDS.some(w => text.toLowerCase().includes(w.toLowerCase()));
-          const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-
-          // detect channel point redemptions BEFORE adding to log
-          if(tags && tags['custom-reward-id']) {
-            addEventItem('redemption', {user:username, reward:'Channel Points Redeemed', msg:text}, t);
-          } else {
-            addLogItem(username, text, emoteTags, userColor, isMention, t);
-          }
-        } catch(e) {}
-      }
-
-      if(line.includes('USERNOTICE')) {
-        try {
-          const tagMatch = line.match(/^@([^ ]+)/);
-          if(!tagMatch) return;
-          const tags={};
-          tagMatch[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tags[k]=v.join('=');});
-          const msgId = tags['msg-id']||'';
-          const user  = tags['display-name']||'Someone';
-          const color = tags['color']||'#C77DFF';
-          const sysMsg = (tags['system-msg']||'').replace(/\s/g,' ');
-          const msgM = line.match(/USERNOTICE #\S+ :(.*)/);
-          const msg  = msgM ? msgM[1].trim() : '';
-          const t    = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-          if(msgId==='sub'||msgId==='resub') addEventItem('sub',{user,color,sysMsg,msg,months:tags['msg-param-cumulative-months']||'1'},t);
-          if(msgId==='subgift'||msgId==='submysterygift') addEventItem('giftsub',{user,color,count:tags['msg-param-mass-gift-count']||'1',recipient:tags['msg-param-recipient-display-name']||''},t);
-          if(msgId==='raid') addEventItem('raid',{user,color,viewers:tags['msg-param-viewerCount']||'0'},t);
-        } catch(e) {}
-      }
-    });
-  };
-
-  ircWs.onclose = () => {
-    ircConnected = false;
-    document.getElementById('chat-dot').className = 'wdot conn';
-    document.getElementById('chat-status').textContent = 'Reconnecting…';
-    if(ircToken) setTimeout(() => connectIRC(ircToken), 5000);
-  };
-}
-
-// ── EVENTSUB FOR CHANNEL POINTS ──────────────────────────────────
-let eventSubWs = null;
-
-function connectEventSub(token) {
-  if(eventSubWs) { eventSubWs.onclose=null; eventSubWs.close(); }
-  eventSubWs = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
-
-  eventSubWs.onmessage = async (e) => {
-    const msg = JSON.parse(e.data);
-
-    if(msg.metadata?.message_type === 'session_welcome') {
-      const sessionId = msg.payload.session.id;
-      // subscribe to channel point redemptions
-      try {
-        const r = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-          method:'POST',
-          headers:{
-            'Client-Id':'c76fsghzngwflbmg06o6c9hj2ffub2',
-            'Authorization':'Bearer '+token,
-            'Content-Type':'application/json'
-          },
-          body: JSON.stringify({
-            type:'channel.channel_points_custom_reward_redemption.add',
-            version:'1',
-            condition:{ broadcaster_user_id:'716266770', user_id:'716266770' },
-            transport:{ method:'websocket', session_id:sessionId }
-          })
-        });
-        const d = await r.json();
-        console.log('EventSub redemption sub:', r.status, JSON.stringify(d).slice(0,100));
-      } catch(err) { console.log('EventSub error:', err); }
-    }
-
-    if(msg.metadata?.message_type === 'notification') {
-      const evt = msg.payload.event;
-      if(evt && msg.payload.subscription?.type === 'channel.channel_points_custom_reward_redemption.add') {
-        const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-        addEventItem('redemption', {
-          user: evt.user_name,
-          reward: evt.reward?.title || 'Channel Points',
-          msg: evt.user_input || ''
-        }, t);
-      }
-    }
-  };
-
-  eventSubWs.onclose = () => {
-    setTimeout(() => { if(window._chatToken) connectEventSub(window._chatToken); }, 5000);
-  };
-}
-
-function colorForUser(name) {
-  const colors = ['#FF6B9D','#C77DFF','#6EE7B7','#FFD93D','#FF9A3C','#85B7EB'];
-  let hash = 0;
-  for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
-  return colors[Math.abs(hash) % colors.length];
-}
-
-// ── EMOTE SUPPORT ─────────────────────────────────────────────────
-
-async function loadDockEmotes() {
-  if(!window._chatToken) return;
-
-  // Get broadcaster's Twitch emotes
+// ── EMOTE LOADING ─────────────────────────────────────────────────
+async function loadEmotes(tok) {
+  // Twitch channel emotes
   try {
-    const r = await fetch('https://api.twitch.tv/helix/chat/emotes?broadcaster_id=716266770', {
-      headers: {
-        'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2',
-        'Authorization': 'Bearer ' + window._chatToken
-      }
+    const r = await fetch('https://api.twitch.tv/helix/chat/emotes?broadcaster_id='+BROADCASTER, {
+      headers:{'Client-Id':CLIENT_ID,'Authorization':'Bearer '+tok}
     });
-    if(r.ok) {
-      const d = await r.json();
-      (d.data||[]).forEach(e => {
-        dockEmoteMap[e.name] = e.images.url_1x;
-        // also store by ID for IRC emote tag lookup
-        if(e.id) dockEmoteById = dockEmoteById || {};
-        if(e.id) dockEmoteById[e.id] = e.images.url_1x;
-      });
-      if(emotePickerOpen) renderEmoteGrid('');
-    }
-  } catch(e) { console.log('emote load error', e); }
+    if(r.ok) { const d=await r.json(); (d.data||[]).forEach(e=>{ emoteMap[e.name]=e.images.url_1x; }); }
+  } catch(e){}
 
-  // BTTV global (for word matching in chat)
+  // BTTV global
   try {
     const r = await fetch('https://api.betterttv.net/3/cached/emotes/global');
-    if(r.ok) { const d = await r.json(); d.forEach(e => { dockEmoteMap[e.code] = 'https://cdn.betterttv.net/emote/'+e.id+'/1x'; }); }
-  } catch(e) {}
+    if(r.ok) { const d=await r.json(); d.forEach(e=>{ emoteMap[e.code]='https://cdn.betterttv.net/emote/'+e.id+'/1x'; }); }
+  } catch(e){}
 
   // BTTV channel
   try {
     const cid = await fetch('https://decapi.me/twitch/id/asiandiva__').then(r=>r.text());
     const r = await fetch('https://api.betterttv.net/3/cached/users/twitch/'+cid.trim());
-    if(r.ok) { const d = await r.json(); [...(d.channelEmotes||[]),...(d.sharedEmotes||[])].forEach(e => { dockEmoteMap[e.code]='https://cdn.betterttv.net/emote/'+e.id+'/1x'; }); }
-  } catch(e) {}
+    if(r.ok) { const d=await r.json(); [...(d.channelEmotes||[]),...(d.sharedEmotes||[])].forEach(e=>{ emoteMap[e.code]='https://cdn.betterttv.net/emote/'+e.id+'/1x'; }); }
+  } catch(e){}
 
   // 7TV global
   try {
     const r = await fetch('https://7tv.io/v3/emote-sets/global');
-    if(r.ok) { const d = await r.json(); (d.emotes||[]).forEach(e => { const f=e.data?.host?.files?.find(f=>f.name==='1x.webp')||e.data?.host?.files?.[0]; if(f) dockEmoteMap[e.name]='https:'+e.data.host.url+'/'+f.name; }); }
-  } catch(e) {}
+    if(r.ok) { const d=await r.json(); (d.emotes||[]).forEach(e=>{ const f=e.data?.host?.files?.find(f=>f.name==='1x.webp')||e.data?.host?.files?.[0]; if(f) emoteMap[e.name]='https:'+e.data.host.url+'/'+f.name; }); }
+  } catch(e){}
 }
 
-
-function renderDockMessage(text, emoteTags) {
-  // Build position → {end, id} map from IRC emote tags
-  const twitchPos = {};
+// ── EMOTE RENDERING ───────────────────────────────────────────────
+function renderMsg(text, emoteTags) {
+  // Twitch emote positions from IRC tags
+  const pos = {};
   if(emoteTags) {
     emoteTags.split('/').forEach(part => {
-      const colonIdx = part.lastIndexOf(':');
-      if(colonIdx === -1) return;
-      const id  = part.slice(0, colonIdx);
-      const pos = part.slice(colonIdx + 1);
-      pos.split(',').forEach(range => {
-        const [s, e] = range.split('-').map(Number);
-        twitchPos[s] = { end:e, id };
+      const ci = part.lastIndexOf(':');
+      if(ci===-1) return;
+      const id=part.slice(0,ci), ranges=part.slice(ci+1);
+      ranges.split(',').forEach(r => {
+        const [s,e]=r.split('-').map(Number);
+        pos[s]={end:e,id};
       });
     });
   }
-
-  // Render with emote positions
-  if(Object.keys(twitchPos).length > 0) {
-    const chars = [...text];
-    let result = '', i = 0;
-    while(i < chars.length) {
-      if(twitchPos[i]) {
-        const {end, id} = twitchPos[i];
-        const word = chars.slice(i, end+1).join('');
-        const url  = dockEmoteMap[word] || 'https://static-cdn.jtvnw.net/emoticons/v2/'+id+'/default/dark/1.0';
-        result += dockEmoteImg(url, word);
-        i = end + 1;
-      } else {
-        result += escHtml(chars[i]);
-        i++;
-      }
+  if(Object.keys(pos).length>0) {
+    const chars=[...text]; let out='',i=0;
+    while(i<chars.length) {
+      if(pos[i]) {
+        const {end,id}=pos[i];
+        const word=chars.slice(i,end+1).join('');
+        const url=emoteMap[word]||'https://static-cdn.jtvnw.net/emoticons/v2/'+id+'/default/dark/1.0';
+        out+=emImg(url,word); i=end+1;
+      } else { out+=esc(chars[i]); i++; }
     }
-    return result;
+    return out;
   }
-
-  // Word-based matching for BTTV/7TV and emotes without tags
-  return text.split(' ').map(word => {
-    if(dockEmoteMap[word]) return dockEmoteImg(dockEmoteMap[word], word);
-    return escHtml(word);
-  }).join(' ');
+  // word matching
+  return text.split(' ').map(w=>emoteMap[w]?emImg(emoteMap[w],w):esc(w)).join(' ');
 }
 
-function dockEmoteImg(url, alt) {
-  return '<img src="'+url+'" alt="'+escHtml(alt)+'" title="'+escHtml(alt)+'" style="height:18px;width:auto;vertical-align:middle;margin:0 1px;" />';
+function emImg(url,alt) {
+  return '<img src="'+url+'" alt="'+esc(alt)+'" title="'+esc(alt)+'" style="height:20px;width:auto;vertical-align:middle;margin:0 1px;" onerror="this.style.display=\'none\'">';
 }
 
-
-function renderEmoteGrid(search) {
-  const grid  = document.getElementById('emote-grid');
-  const count = document.getElementById('emote-count');
-  const keys  = Object.keys(dockEmoteMap).filter(k => !search || k.toLowerCase().includes(search.toLowerCase()));
-  count.textContent = keys.length + ' emotes';
-  if(!keys.length) {
-    grid.innerHTML = '<div class="emote-empty">' + (search ? 'No emotes found' : 'Loading…') + '</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  keys.slice(0, 200).forEach(name => {
-    const btn = document.createElement('button');
-    btn.title = name;
-    btn.style.cssText = 'background:transparent;border:1px solid transparent;border-radius:8px;padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all 0.15s;';
-    btn.onmouseover = () => { btn.style.background='rgba(255,217,61,0.1)'; btn.style.borderColor='rgba(255,217,61,0.3)'; };
-    btn.onmouseout  = () => { btn.style.background='transparent'; btn.style.borderColor='transparent'; };
-    btn.onclick = () => insertEmote(name);
-    btn.innerHTML = '<img src="' + dockEmoteMap[name] + '" alt="' + name + '" style="width:28px;height:28px;object-fit:contain;"/>' +
-      '<span style="font-size:7px;color:#9B7BB8;font-weight:800;max-width:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(name) + '</span>';
-    grid.appendChild(btn);
+function reRenderAll() {
+  const list=document.getElementById('log-list');
+  list.querySelectorAll('.log-item[data-raw]').forEach(item => {
+    const span=item.querySelector('.log-msg');
+    if(span) {
+      const raw=item.dataset.raw, et=item.dataset.et||'';
+      span.innerHTML=renderMsg(raw,et);
+    }
   });
 }
 
-function insertEmote(name) {
-  const input = document.getElementById('chat-input');
-  const pos   = input.selectionStart;
-  const val   = input.value;
-  const before = val.slice(0, pos);
-  const after  = val.slice(pos);
-  const space  = before.length > 0 && !before.endsWith(' ') ? ' ' : '';
-  input.value  = before + space + name + ' ' + after;
-  input.focus();
-  const newPos = (before + space + name + ' ').length;
-  input.setSelectionRange(newPos, newPos);
-}
+// ── IRC ───────────────────────────────────────────────────────────
+function connectIRC(tok) {
+  ircToken=tok;
+  if(ircWs){ircWs.onclose=null;ircWs.close();}
+  ircWs=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
 
-// close emote picker when clicking outside
-document.addEventListener('click', (e) => {
-  if(emotePickerOpen && !e.target.closest('#emote-picker') && !e.target.closest('.emote-toggle-btn')) {
-    document.getElementById('emote-picker').style.display = 'none';
-    emotePickerOpen = false;
-  }
-});
+  ircWs.onopen=()=>{
+    ircWs.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+    ircWs.send('PASS oauth:'+tok);
+    ircWs.send('NICK asiandiva__');
+    ircWs.send('JOIN #asiandiva__');
+  };
 
-function sendIRC(text) {
-  if(!ircConnected || !ircWs) return false;
-  ircWs.send('PRIVMSG #asiandiva__ :' + text);
-  // local echo since Twitch doesn't echo your own messages back
-  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  addLogItem('AsianDiva__', text, '', '#FFD93D', false, t);
-  return true;
-}
-
-function editTitle() {
-  const txt = document.getElementById('stream-title');
-  const inp = document.getElementById('title-input');
-  inp.value = txt.textContent;
-  txt.style.display = 'none';
-  inp.style.display = 'block';
-  document.getElementById('edit-btn').style.display = 'none';
-  document.getElementById('save-btn').style.display = 'inline';
-  document.getElementById('cancel-btn').style.display = 'inline';
-  inp.focus();
-}
-
-function cancelEdit() {
-  document.getElementById('stream-title').style.display = 'block';
-  document.getElementById('title-input').style.display = 'none';
-  document.getElementById('edit-btn').style.display = 'inline';
-  document.getElementById('save-btn').style.display = 'none';
-  document.getElementById('cancel-btn').style.display = 'none';
-}
-
-async function saveTitle() {
-  const inp = document.getElementById('title-input');
-  const newTitle = inp.value.trim();
-  if (!newTitle || !window._chatToken) return;
-  try {
-    const r = await fetch('https://api.twitch.tv/helix/channels?broadcaster_id=' + BROADCASTER_ID, {
-      method: 'PATCH',
-      headers: { 'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2', 'Authorization': 'Bearer ' + window._chatToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTitle })
-    });
-    if (r.ok || r.status === 204) {
-      document.getElementById('stream-title').textContent = newTitle;
-      cancelEdit();
-    } else {
-      alert('Failed to update title — token may need channel:manage:broadcast scope');
-    }
-  } catch(e) { alert('Error updating title'); }
-}
-
-async function fetchStreamInfo() {
-  // Get token from tracker dock BC or use stored one
-  if (!window._chatToken) return;
-  try {
-    const r = await fetch('https://api.twitch.tv/helix/streams?user_id=' + BROADCASTER_ID, {
-      headers: { 'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2', 'Authorization': 'Bearer ' + window._chatToken }
-    });
-    const data = await r.json();
-    const stream = data.data?.[0];
-    if (stream) {
-      document.getElementById('viewer-count').textContent = stream.viewer_count.toLocaleString();
-      document.getElementById('stream-title').textContent = stream.title || 'No title set';
-      document.getElementById('stream-live-badge').style.display = 'inline';
-      if (!streamStartTime) {
-        streamStartTime = new Date(stream.started_at);
-        uptimeInterval = setInterval(updateUptime, 1000);
+  ircWs.onmessage=(e)=>{
+    e.data.split('\r\n').forEach(line=>{
+      if(!line) return;
+      if(line.startsWith('PING')){ircWs.send('PONG :tmi.twitch.tv');return;}
+      if(line.includes('366')||line.includes('JOIN #asiandiva__')) {
+        ircConnected=true;
+        setChatDot('live','Live · #asiandiva__');
+        const btn=document.getElementById('send-btn');
+        btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='var(--yellow)';
       }
-    } else {
-      document.getElementById('viewer-count').textContent = '—';
-      document.getElementById('stream-title').textContent = 'Not live';
-      document.getElementById('stream-live-badge').style.display = 'none';
-      document.getElementById('stream-uptime').textContent = '—';
-      streamStartTime = null;
-      clearInterval(uptimeInterval);
-    }
-  } catch(e) {}
+      if(line.includes('PRIVMSG')) parsePRIVMSG(line);
+      if(line.includes('USERNOTICE')) parseUSERNOTICE(line);
+    });
+  };
+
+  ircWs.onclose=()=>{
+    ircConnected=false;
+    setChatDot('conn','Reconnecting…');
+    setTimeout(()=>connectIRC(ircToken),5000);
+  };
 }
 
-function updateUptime() {
-  if (!streamStartTime) return;
-  const elapsed = Math.floor((Date.now() - streamStartTime) / 1000);
-  const h = Math.floor(elapsed / 3600);
-  const m = Math.floor((elapsed % 3600) / 60);
-  const s = elapsed % 60;
-  document.getElementById('stream-uptime').textContent =
-    (h > 0 ? h + ':' : '') + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+function parsePRIVMSG(line) {
+  try {
+    const tags={};
+    const tm=line.match(/^@([^ ]+)/);
+    if(tm) tm[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tags[k]=v.join('=');});
+    let username=tags['display-name']||'';
+    if(!username){const m=line.match(/:([^!]+)!/);if(m)username=m[1];}
+    const mm=line.match(/PRIVMSG #\S+ :(.+)/);
+    if(!mm||!username) return;
+    const text=mm[1].trim();
+    const color=tags['color']||colorFor(username);
+    const emoteTags=tags['emotes']||'';
+    const isMention=MENTION_WORDS.some(w=>text.toLowerCase().includes(w.toLowerCase()));
+    const t=now();
+    addMsg(username,text,emoteTags,color,isMention,t);
+    // first time chatter
+    if(tags['first-msg']==='1') addEvent('firstchat',{user:username,color},t);
+    // bits
+    if(tags['bits']) addEvent('bits',{user:username,bits:parseInt(tags['bits']),msg:text},t);
+  } catch(err){}
 }
 
-BC.onmessage = (e) => {
-  const msg = e.data;
-
-  // overlay alive
-  document.getElementById('overlay-dot').className = 'wdot live';
-  document.getElementById('overlay-txt').textContent = 'Overlay connected';
-  const sb=document.getElementById('send-btn'); sb.disabled=false; sb.style.opacity='1'; sb.style.borderColor='#FFD93D';
-
-  if(msg.type === 'message') {
-    addLogItem(msg.username, msg.text, msg.color, msg.isMention, msg.time);
-  }
-
-  if(msg.type === 'status') {
-    const d = document.getElementById('chat-dot');
-    d.className = 'wdot' + (msg.state==='live'?' live':msg.state==='conn'?' conn':msg.state==='err'?' err':'');
-    document.getElementById('chat-status').textContent = msg.text;
-  }
-
-  if(msg.type === 'token') {
-    window._chatToken = msg.token;
-    fetchStreamInfo();
-    setInterval(fetchStreamInfo, 60000);
-    if(Object.keys(dockEmoteMap).length === 0) {
-      loadDockEmotes().then(() => reRenderAllMessages());
+function parseUSERNOTICE(line) {
+  try {
+    const tags={};
+    const tm=line.match(/^@([^ ]+)/);
+    if(!tm) return;
+    tm[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tags[k]=v.join('=');});
+    const msgId=tags['msg-id']||'';
+    const user=tags['display-name']||tags['login']||'Someone';
+    const color=tags['color']||'#C77DFF';
+    const mm=line.match(/USERNOTICE #\S+ :(.*)/);
+    const msg=mm?mm[1].trim():'';
+    const t=now();
+    if(msgId==='sub'||msgId==='resub') {
+      addEvent('sub',{user,color,msg,months:tags['msg-param-cumulative-months']||'1'},t);
     }
-  }
+    if(msgId==='subgift'||msgId==='submysterygift') {
+      addEvent('giftsub',{user,color,count:tags['msg-param-mass-gift-count']||tags['msg-param-sender-count']||'1',recipient:tags['msg-param-recipient-display-name']||''},t);
+    }
+    if(msgId==='raid') {
+      addEvent('raid',{user,color,viewers:tags['msg-param-viewerCount']||'0'},t);
+    }
+  } catch(err){}
+}
 
-  if(msg.type === 'cleared') {
-    clearLog();
-  }
+// ── SEND MESSAGE ──────────────────────────────────────────────────
+function sendMessage() {
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text||!ircConnected) return;
+  ircWs.send('PRIVMSG #asiandiva__ :'+text);
+  addMsg('AsianDiva__',text,'','#FFD93D',false,now());
+  input.value='';
+  hideCmdMenu();
+}
 
-  if(msg.type === 'event') {
-    addEventItem(msg.eventType, msg.eventData, msg.time);
-  }
-
-  if(msg.type === 'pinned') {
-    const el = document.getElementById('pinned-msg');
-    el.style.display = 'block';
-    document.getElementById('pinned-user').textContent = msg.username;
-    document.getElementById('pinned-text').textContent = msg.text;
-  }
-
-  if(msg.type === 'unpinned') {
-    document.getElementById('pinned-msg').style.display = 'none';
-  }
-
-  if(msg.type === 'ping') {
-    document.getElementById('overlay-dot').className = 'wdot live';
-    document.getElementById('overlay-txt').textContent = 'Overlay connected';
-  }
-};
-
-// Store raw messages for re-rendering after emotes load
-const rawMsgs = [];
-
-function addLogItem(username, rawText, emoteTags, color, isMention, time) {
+// ── LOG FUNCTIONS ─────────────────────────────────────────────────
+function addMsg(username,rawText,emoteTags,color,isMention,time) {
   document.getElementById('log-empty')?.remove();
   logCount++;
-  document.getElementById('log-count').textContent = logCount.toLocaleString() + ' msg' + (logCount !== 1 ? 's' : '');
-
-  // store raw data for re-render
-  rawMsgs.push({username, rawText, emoteTags, color, isMention, time});
-  if(rawMsgs.length > 200) rawMsgs.shift();
-
-  const rendered = renderDockMessage(rawText, emoteTags);
-  const list = document.getElementById('log-list');
-  const item = document.createElement('div');
-  item.className = 'log-item' + (isMention ? ' is-mention' : '');
-  item.dataset.idx = rawMsgs.length - 1;
-  item.innerHTML =
-    '<span class="log-name" style="color:' + (color||'#FFD93D') + '">' + escHtml(username) + '</span>' +
-    '<span class="log-colon">:</span>' +
-    '<span class="log-msg" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">' + rendered + '</span>' +
-    '<span class="log-time">' + time + '</span>';
+  document.getElementById('log-count').textContent=logCount+' msg'+(logCount!==1?'s':'');
+  rawMsgs.push({username,rawText,emoteTags,color,isMention,time});
+  if(rawMsgs.length>200) rawMsgs.shift();
+  const rendered=renderMsg(rawText,emoteTags);
+  const list=document.getElementById('log-list');
+  const item=document.createElement('div');
+  item.className='log-item'+(isMention?' is-mention':'');
+  item.dataset.raw=rawText;
+  item.dataset.et=emoteTags;
+  item.innerHTML=
+    '<span class="log-name" style="color:'+(color||'#FFD93D')+'">'+esc(username)+'</span>'+
+    '<span class="log-colon">:</span>'+
+    '<span class="log-msg">'+rendered+'</span>'+
+    '<span class="log-time">'+time+'</span>';
   list.appendChild(item);
-  while(list.children.length > 200) list.removeChild(list.firstChild);
-  list.scrollTop = list.scrollHeight;
+  while(list.children.length>200) list.removeChild(list.firstChild);
+  list.scrollTop=list.scrollHeight;
 }
 
-function reRenderAllMessages() {
-  const list = document.getElementById('log-list');
-  const items = list.querySelectorAll('.log-item[data-idx]');
-  items.forEach(item => {
-    const idx = parseInt(item.dataset.idx);
-    const msg = rawMsgs[idx];
-    if(!msg) return;
-    const msgSpan = item.querySelector('.log-msg');
-    if(msgSpan) msgSpan.innerHTML = renderDockMessage(msg.rawText, msg.emoteTags);
-  });
-}
-
-function addEventItem(type, data, time) {
+function addEvent(type,data,time) {
   document.getElementById('log-empty')?.remove();
   logCount++;
-  document.getElementById('log-count').textContent = logCount.toLocaleString() + ' msg' + (logCount !== 1 ? 's' : '');
-  const list = document.getElementById('log-list');
-  const item = document.createElement('div');
-  item.className = 'event-item ' + type;
-
-  let icon = '⭐', html = '';
-
-  if(type === 'sub') {
-    icon = '⭐';
-    html = '<span class="event-name" style="color:#FF6B9D">' + escHtml(data.user) + '</span> ' +
-           (data.months > 1 ? 'resubscribed for <strong>' + data.months + ' months!</strong>' : 'just subscribed! 🎉') +
-           (data.msg ? '<br><span style="color:#c8d0f0;font-size:0.72rem;">"' + escHtml(data.msg) + '"</span>' : '');
-  } else if(type === 'giftsub') {
-    icon = '🎁';
-    html = '<span class="event-name" style="color:#C77DFF">' + escHtml(data.user) + '</span> gifted ' +
-           (data.count > 1 ? '<strong>' + data.count + ' subs</strong> to the community!' : 'a sub to <strong>' + escHtml(data.recipient) + '</strong>!');
-  } else if(type === 'raid') {
-    icon = '🚀';
-    html = '<span class="event-name" style="color:#FFD93D">' + escHtml(data.user) + '</span> is raiding with <strong>' + Number(data.viewers).toLocaleString() + ' viewers!</strong> 🎉';
-  } else if(type === 'bits') {
-    icon = '💎';
-    html = '<span class="event-name" style="color:#6EE7B7">' + escHtml(data.user) + '</span> cheered <strong>' + Number(data.bits).toLocaleString() + ' bits!</strong>' +
-           (data.msg ? '<br><span style="color:#c8d0f0;font-size:0.72rem;">"' + escHtml(data.msg) + '"</span>' : '');
-  } else if(type === 'firstchat') {
-    icon = '👋';
-    html = '<span class="event-name" style="color:#378ADD">' + escHtml(data.user) + '</span> chatted for the first time! Welcome to Squad Crime! 💛';
-  } else if(type === 'redemption') {
-    icon = '🟣';
-    html = '<span class="event-name" style="color:#9147FF">' + escHtml(data.user) + '</span> redeemed <strong>' + escHtml(data.reward) + '</strong>' +
-           (data.msg ? '<br><span style="color:#c8d0f0;font-size:0.72rem;">"' + escHtml(data.msg) + '"</span>' : '');
+  document.getElementById('log-count').textContent=logCount+' msg'+(logCount!==1?'s':'');
+  const list=document.getElementById('log-list');
+  const item=document.createElement('div');
+  item.className='event-item '+type;
+  let icon='⭐',html='';
+  if(type==='sub') {
+    icon='⭐';
+    html='<span class="event-name" style="color:#FF6B9D">'+esc(data.user)+'</span> '+
+      (data.months>1?'resubscribed for <strong>'+data.months+' months!</strong>':'just subscribed! 🎉')+
+      (data.msg?'<br><span style="color:#c8d0f0;font-size:11px;">"'+esc(data.msg)+'"</span>':'');
+  } else if(type==='giftsub') {
+    icon='🎁';
+    html='<span class="event-name" style="color:#C77DFF">'+esc(data.user)+'</span> gifted '+
+      (data.count>1?'<strong>'+data.count+' subs</strong> to the community!':'a sub to <strong>'+esc(data.recipient)+'</strong>!');
+  } else if(type==='raid') {
+    icon='🚀';
+    html='<span class="event-name" style="color:#FFD93D">'+esc(data.user)+'</span> is raiding with <strong>'+Number(data.viewers).toLocaleString()+' viewers!</strong> 🎉';
+  } else if(type==='bits') {
+    icon='💎';
+    html='<span class="event-name" style="color:#6EE7B7">'+esc(data.user)+'</span> cheered <strong>'+data.bits.toLocaleString()+' bits!</strong>'+
+      (data.msg?'<br><span style="color:#c8d0f0;font-size:11px;">"'+esc(data.msg)+'"</span>':'');
+  } else if(type==='firstchat') {
+    icon='👋';
+    html='<span class="event-name" style="color:#378ADD">'+esc(data.user)+'</span> chatted for the first time! Welcome to Squad Crime! 💛';
   }
-
-  item.innerHTML = '<span class="event-icon">' + icon + '</span><span class="event-text">' + html + '</span><span class="event-time">' + time + '</span>';
+  item.innerHTML='<span class="event-icon">'+icon+'</span><span class="event-text">'+html+'</span><span class="event-time">'+time+'</span>';
   list.appendChild(item);
-  while(list.children.length > 200) list.removeChild(list.firstChild);
-  list.scrollTop = list.scrollHeight;
+  while(list.children.length>200) list.removeChild(list.firstChild);
+  list.scrollTop=list.scrollHeight;
 }
 
 function clearLog() {
-  logCount = 0;
-  document.getElementById('log-count').textContent = '0 msgs';
-  document.getElementById('log-list').innerHTML = '<div class="log-empty" id="log-empty">Waiting for chat…</div>';
+  logCount=0;
+  rawMsgs.length=0;
+  document.getElementById('log-count').textContent='0 msgs';
+  document.getElementById('log-list').innerHTML='<div class="log-empty" id="log-empty">Waiting for chat…</div>';
 }
 
-// ── SLASH COMMANDS ───────────────────────────────────────────────
-const COMMANDS = [
-  { name:'/ban',         desc:'Ban a user',              usage:'/ban [user]',           action:'ban' },
-  { name:'/unban',       desc:'Unban a user',            usage:'/unban [user]',         action:'unban' },
-  { name:'/timeout',     desc:'Timeout a user',          usage:'/timeout [user] [sec]', action:'timeout' },
-  { name:'/untimeout',   desc:'Remove timeout',          usage:'/untimeout [user]',     action:'untimeout' },
-  { name:'/slow',        desc:'Slow mode on',            usage:'/slow [seconds]',       action:'slow' },
-  { name:'/slowoff',     desc:'Slow mode off',           usage:'/slowoff',              action:'slowoff' },
-  { name:'/subscribers', desc:'Subscribers only mode',   usage:'/subscribers',          action:'subscribers' },
-  { name:'/subscribersoff', desc:'Disable subs only',   usage:'/subscribersoff',       action:'subscribersoff' },
-  { name:'/emoteonly',   desc:'Emote only mode',         usage:'/emoteonly',            action:'emoteonly' },
-  { name:'/emoteonlyoff',desc:'Disable emote only',      usage:'/emoteonlyoff',         action:'emoteonlyoff' },
-  { name:'/clear',       desc:'Clear chat',              usage:'/clear',                action:'clear' },
-  { name:'/raid',        desc:'Raid a channel',          usage:'/raid [channel]',       action:'raid' },
-  { name:'/unraid',      desc:'Cancel raid',             usage:'/unraid',               action:'unraid' },
-  { name:'/shoutout',    desc:'Shoutout a user',         usage:'/shoutout [user]',      action:'shoutout' },
-  { name:'/color',       desc:'Change your chat color',  usage:'/color [color]',        action:'color' },
-  { name:'/me',          desc:'Action message',          usage:'/me [message]',         action:'me' },
-];
+// ── PINNED ────────────────────────────────────────────────────────
+function showPinned(user,text) {
+  const el=document.getElementById('pinned-msg');
+  el.style.display='block';
+  document.getElementById('pinned-user').textContent=user;
+  document.getElementById('pinned-text').textContent=text;
+}
+function hidePinned() { document.getElementById('pinned-msg').style.display='none'; }
 
+// ── STATUS DOTS ───────────────────────────────────────────────────
+function setOverlayDot(on) {
+  document.getElementById('overlay-dot').className='wdot'+(on?' live':'');
+  document.getElementById('overlay-txt').textContent=on?'Overlay connected':'Waiting for overlay…';
+}
+function setChatDot(state,text) {
+  document.getElementById('chat-dot').className='wdot'+(state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
+  document.getElementById('chat-status').textContent=text;
+}
 
+// ── STREAM INFO ───────────────────────────────────────────────────
+async function fetchStreamInfo(tok) {
+  if(!tok) return;
+  try {
+    const r=await fetch('https://api.twitch.tv/helix/streams?user_id='+BROADCASTER,{
+      headers:{'Client-Id':CLIENT_ID,'Authorization':'Bearer '+tok}
+    });
+    const d=await r.json();
+    const s=d.data?.[0];
+    if(s) {
+      document.getElementById('viewer-count').textContent=s.viewer_count.toLocaleString();
+      document.getElementById('stream-title').textContent=s.title||'No title';
+      document.getElementById('live-badge').style.display='inline';
+      if(!streamStart) { streamStart=new Date(s.started_at); uptimeTimer=setInterval(updateUptime,1000); }
+    } else {
+      document.getElementById('viewer-count').textContent='—';
+      document.getElementById('stream-title').textContent='Not live';
+      document.getElementById('live-badge').style.display='none';
+      document.getElementById('stream-uptime').textContent='—';
+      streamStart=null; clearInterval(uptimeTimer);
+    }
+  } catch(e){}
+}
+function updateUptime() {
+  if(!streamStart) return;
+  const s=Math.floor((Date.now()-streamStart)/1000);
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  document.getElementById('stream-uptime').textContent=(h>0?h+':':'')+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+// ── TITLE EDIT ────────────────────────────────────────────────────
+function editTitle() {
+  document.getElementById('stream-title').style.display='none';
+  document.getElementById('title-input').style.display='block';
+  document.getElementById('title-input').value=document.getElementById('stream-title').textContent;
+  document.getElementById('edit-btn').style.display='none';
+  document.getElementById('save-btn').style.display='inline';
+  document.getElementById('cancel-btn').style.display='inline';
+  document.getElementById('title-input').focus();
+}
+function cancelEdit() {
+  document.getElementById('stream-title').style.display='block';
+  document.getElementById('title-input').style.display='none';
+  document.getElementById('edit-btn').style.display='inline';
+  document.getElementById('save-btn').style.display='none';
+  document.getElementById('cancel-btn').style.display='none';
+}
+async function saveTitle() {
+  const val=document.getElementById('title-input').value.trim();
+  if(!val||!token) return;
+  try {
+    const r=await fetch('https://api.twitch.tv/helix/channels?broadcaster_id='+BROADCASTER,{
+      method:'PATCH',
+      headers:{'Client-Id':CLIENT_ID,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({title:val})
+    });
+    if(r.ok||r.status===204) { document.getElementById('stream-title').textContent=val; cancelEdit(); }
+  } catch(e){}
+}
+
+// ── SLASH COMMANDS ────────────────────────────────────────────────
 function handleInput(val) {
-  if (val.startsWith('/')) {
-    const search = val.toLowerCase();
-    filteredCmds = COMMANDS.filter(c => c.name.startsWith(search));
-    activeCmd = -1;
+  if(val.startsWith('/')) {
+    const s=val.toLowerCase();
+    filteredCmds=COMMANDS.filter(c=>c.name.startsWith(s));
+    activeCmd=-1;
     renderCmdMenu();
-  } else {
-    hideCmdMenu();
-  }
+  } else { hideCmdMenu(); }
 }
-
 function renderCmdMenu() {
-  const menu = document.getElementById('cmd-menu');
-  if (!filteredCmds.length) { hideCmdMenu(); return; }
-  menu.innerHTML = filteredCmds.map((c, i) =>
-    '<div class="cmd-item' + (i === activeCmd ? ' active' : '') + '" onclick="selectCmd(' + i + ')">' +
-    '<span class="cmd-name">' + c.name + '</span>' +
-    '<span class="cmd-desc">' + c.desc + '</span>' +
-    '<span class="cmd-usage">' + c.usage + '</span>' +
+  const menu=document.getElementById('cmd-menu');
+  if(!filteredCmds.length){hideCmdMenu();return;}
+  menu.innerHTML=filteredCmds.map((c,i)=>
+    '<div class="cmd-item'+(i===activeCmd?' active':'')+'" onclick="selectCmd('+i+')">'+
+    '<span class="cmd-name">'+c.name+'</span>'+
+    '<span class="cmd-desc">'+c.desc+'</span>'+
+    '<span class="cmd-usage">'+c.usage+'</span>'+
     '</div>'
   ).join('');
-  menu.style.display = 'block';
+  menu.style.display='block';
 }
-
-function hideCmdMenu() {
-  document.getElementById('cmd-menu').style.display = 'none';
-  filteredCmds = [];
-  activeCmd = -1;
-}
-
+function hideCmdMenu() { document.getElementById('cmd-menu').style.display='none'; filteredCmds=[]; activeCmd=-1; }
 function selectCmd(i) {
-  const cmd = filteredCmds[i];
-  const input = document.getElementById('chat-input');
-  input.value = cmd.usage;
-  hideCmdMenu();
-  input.focus();
-  // position cursor after command name
-  const pos = cmd.usage.indexOf('[');
-  if (pos > -1) { input.setSelectionRange(pos, cmd.usage.lastIndexOf(']') + 1); }
+  const cmd=filteredCmds[i];
+  const input=document.getElementById('chat-input');
+  input.value=cmd.usage;
+  hideCmdMenu(); input.focus();
+  const p=cmd.usage.indexOf('[');
+  if(p>-1) input.setSelectionRange(p,cmd.usage.lastIndexOf(']')+1);
 }
-
 function handleKeydown(e) {
-  const menu = document.getElementById('cmd-menu');
-  if (menu.style.display === 'block') {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      activeCmd = Math.min(activeCmd + 1, filteredCmds.length - 1);
-      renderCmdMenu();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      activeCmd = Math.max(activeCmd - 1, -1);
-      renderCmdMenu();
-    } else if (e.key === 'Tab' || e.key === 'Enter') {
-      e.preventDefault();
-      if (activeCmd >= 0) selectCmd(activeCmd);
-      else if (filteredCmds.length > 0) selectCmd(0);
-      return;
-    } else if (e.key === 'Escape') {
-      hideCmdMenu();
-      return;
-    }
+  const menu=document.getElementById('cmd-menu');
+  if(menu.style.display==='block') {
+    if(e.key==='ArrowDown'){e.preventDefault();activeCmd=Math.min(activeCmd+1,filteredCmds.length-1);renderCmdMenu();return;}
+    if(e.key==='ArrowUp'){e.preventDefault();activeCmd=Math.max(activeCmd-1,-1);renderCmdMenu();return;}
+    if(e.key==='Tab'||e.key==='Enter'){e.preventDefault();if(activeCmd>=0)selectCmd(activeCmd);else if(filteredCmds.length)selectCmd(0);return;}
+    if(e.key==='Escape'){hideCmdMenu();return;}
   }
-  if (e.key === 'Enter') sendMessage();
+  if(e.key==='Enter') sendMessage();
 }
 
-function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const text  = input.value.trim();
-  if (!text) return;
-  if(sendIRC(text)) {
-    input.value = '';
-  } else {
-    alert('Not connected to chat yet!');
-  }
+// ── HELPERS ───────────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-function sendClear()   { BC.postMessage({type:'clear'}); clearLog(); }
-function sendTest()    { BC.postMessage({type:'test'}); }
-
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function escHtml(s) { return esc(s); }
+function now() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function colorFor(name) {
+  const c=['#FF6B9D','#C77DFF','#6EE7B7','#FFD93D','#FF9A3C','#85B7EB'];
+  let h=0; for(let i=0;i<name.length;i++) h=name.charCodeAt(i)+((h<<5)-h);
+  return c[Math.abs(h)%c.length];
 }
 </script>
 </body>
