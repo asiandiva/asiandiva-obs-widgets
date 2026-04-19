@@ -156,6 +156,13 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 <script>
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
+let emotesReady = false;
+let pendingMsgs  = [];
+
+function processMessage(username, text, emoteTags, userColor, isMention, t) {
+  const rendered = renderDockMessage(text, emoteTags);
+  addLogItem(username, rendered, userColor, isMention, t);
+}
 
 // Read token from URL on startup - load emotes then connect IRC
 (function() {
@@ -163,8 +170,11 @@ let logCount = 0;
   const tok = p.get('token');
   if(tok) {
     window._chatToken = tok;
-    // load emotes first, then connect IRC so emotes are ready for messages
     loadDockEmotes().then(() => {
+      emotesReady = true;
+      // flush any messages that arrived before emotes loaded
+      pendingMsgs.forEach(m => processMessage(m.u, m.text, m.et, m.uc, m.im, m.t));
+      pendingMsgs = [];
       if(!ircConnected) connectIRC(tok);
     });
   }
@@ -220,9 +230,13 @@ function connectIRC(token) {
           const text = msgM[1].trim();
           const userColor = color || colorForUser(username);
           const isMention = DOCK_MENTION_WORDS.some(w => text.toLowerCase().includes(w.toLowerCase()));
-          const rendered  = renderDockMessage(text, emoteTags);
           const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-          addLogItem(username, rendered, userColor, isMention, t);
+          if(emotesReady) {
+            processMessage(username, text, emoteTags, userColor, isMention, t);
+          } else {
+            pendingMsgs.push({u:username, text, et:emoteTags, uc:userColor, im:isMention, t});
+            addLogItem(username, escHtml(text), userColor, isMention, t);
+          }
         } catch(e) {}
       }
 
@@ -312,51 +326,41 @@ async function loadDockEmotes() {
 let dockEmoteById = {};
 
 function renderDockMessage(text, emoteTags) {
-  // Log first 3 emote map entries to verify what URLs we have
-  if(Object.keys(dockEmoteMap).length > 0) {
-    const sample = Object.entries(dockEmoteMap).slice(0,2);
-    console.log('Emote map sample:', sample);
-  }
-  // Build emote position map from IRC tags
+  // Build position → {end, id} map from IRC emote tags
   const twitchPos = {};
   if(emoteTags) {
     emoteTags.split('/').forEach(part => {
-      const [id, positions] = part.split(':');
-      if(!positions) return;
-      positions.split(',').forEach(pos => {
-        const [start, end] = pos.split('-').map(Number);
-        // Use word at that position to look up in our emote map
-        const chars = [...text];
-        const word = chars.slice(start, end+1).join('');
-        twitchPos[start] = { end, word };
+      const colonIdx = part.lastIndexOf(':');
+      if(colonIdx === -1) return;
+      const id  = part.slice(0, colonIdx);
+      const pos = part.slice(colonIdx + 1);
+      pos.split(',').forEach(range => {
+        const [s, e] = range.split('-').map(Number);
+        twitchPos[s] = { end:e, id };
       });
     });
   }
 
-  // Render using positions if we have them
+  // Render with emote positions
   if(Object.keys(twitchPos).length > 0) {
-    let result = '', i = 0;
     const chars = [...text];
+    let result = '', i = 0;
     while(i < chars.length) {
       if(twitchPos[i]) {
-        const {end, word} = twitchPos[i];
-        // Look up emote URL from our loaded map, or use Twitch CDN
-        const emoteId = emoteTags.split('/').find(p => {
-          const [id, pos] = p.split(':');
-          return pos && pos.split(',').some(r => r.split('-')[0] == i);
-        })?.split(':')[0];
-        const url = dockEmoteMap[word] || (emoteId ? 'https://static-cdn.jtvnw.net/emoticons/v2/'+emoteId+'/default/dark/1.0' : null);
-        if(url) result += dockEmoteImg(url, word);
-        else result += escHtml(word);
+        const {end, id} = twitchPos[i];
+        const word = chars.slice(i, end+1).join('');
+        const url  = dockEmoteMap[word] || 'https://static-cdn.jtvnw.net/emoticons/v2/'+id+'/default/dark/1.0';
+        result += dockEmoteImg(url, word);
         i = end + 1;
       } else {
-        result += escHtml(chars[i]); i++;
+        result += escHtml(chars[i]);
+        i++;
       }
     }
     return result;
   }
 
-  // No IRC emote tags - use word matching from emote map (BTTV/7TV)
+  // Word-based matching for BTTV/7TV and emotes without tags
   return text.split(' ').map(word => {
     if(dockEmoteMap[word]) return dockEmoteImg(dockEmoteMap[word], word);
     return escHtml(word);
@@ -530,9 +534,16 @@ BC.onmessage = (e) => {
     window._chatToken = msg.token;
     fetchStreamInfo();
     setInterval(fetchStreamInfo, 60000);
-    // IRC already connected via URL token; just update emotes if not loaded
-    if(Object.keys(dockEmoteMap).length === 0) loadDockEmotes();
-    if(!ircConnected) connectIRC(msg.token);
+    if(!emotesReady) {
+      loadDockEmotes().then(() => {
+        emotesReady = true;
+        pendingMsgs.forEach(m => processMessage(m.u, m.text, m.et, m.uc, m.im, m.t));
+        pendingMsgs = [];
+        if(!ircConnected) connectIRC(msg.token);
+      });
+    } else if(!ircConnected) {
+      connectIRC(msg.token);
+    }
   }
 
   if(msg.type === 'cleared') {
