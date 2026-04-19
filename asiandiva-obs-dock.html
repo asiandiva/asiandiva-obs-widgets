@@ -3,359 +3,479 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>AsianDiva__ Dock</title>
+<title>AsianDiva Chat Dock</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --yellow: #FFD93D; --ydark: #C89A00; --pink: #FF6B9D;
-  --purple: #C77DFF; --green: #6EE7B7;
-  --bg: #0f0a1e; --bg2: #17102b; --bg3: #1e1438;
-  --border: #2e1e50; --text: #F5E6FF; --muted: #9B7BB8; --dim: #4A2870;
+  --yellow:#FFD93D; --pink:#FF6B9D; --purple:#C77DFF; --green:#6EE7B7;
+  --bg:#0f0a1e; --bg2:#17102b; --bg3:#1e1438;
+  --border:#2e1e50; --text:#F5E6FF; --muted:#9B7BB8; --dim:#4A2870;
 }
-* { box-sizing:border-box; margin:0; padding:0; }
-html,body { height:100%; }
-body {
-  background: var(--bg);
-  font-family: 'Nunito', sans-serif;
-  color: var(--text);
-  overflow-y: auto;
-  padding: 12px;
-  min-height: 100vh;
-}
-body::-webkit-scrollbar { width:4px; }
-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text);overflow-y:auto;padding:12px;min-height:100vh;}
+body::-webkit-scrollbar{width:4px;}
+body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-/* ── HEADER ── */
-.dock-title {
-  font-family: 'Fredoka One', sans-serif;
-  font-size: 1.3rem;
-  background: linear-gradient(135deg, var(--yellow), var(--pink));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  text-align: center; margin-bottom: 3px;
-}
-.dock-hint { font-size:0.55rem; color:var(--dim); letter-spacing:2px; text-transform:uppercase; text-align:center; margin-bottom:12px; }
+.dock-title{font-family:'Fredoka One',sans-serif;font-size:1.2rem;background:linear-gradient(135deg,var(--yellow),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:3px;}
+.dock-hint{font-size:0.55rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:12px;}
 
-/* ── CARDS ── */
-.card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
-.card-lbl { font-size:0.55rem; font-weight:800; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; padding-bottom:7px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.card-lbl{font-size:0.55rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 
-/* ── STATS ROW ── */
-.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
-.stat { background:var(--bg3); border:1px solid var(--border); border-radius:9px; padding:10px 6px; text-align:center; }
-.stat-v { font-family:'Fredoka One',sans-serif; font-size:1.3rem; line-height:1; margin-bottom:3px; transition:transform 0.15s, filter 0.15s; }
-.stat-v.bump { animation:bump 0.25s ease; }
-@keyframes bump { 0%{transform:scale(1)} 50%{transform:scale(1.25);filter:brightness(1.6)} 100%{transform:scale(1)} }
-.stat-l { font-size:0.5rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.overlay-status{display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.55rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding:6px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);}
 
-/* ── REVENUE ── */
-.rev-num { font-family:'Fredoka One',sans-serif; font-size:2.2rem; color:var(--yellow); text-shadow:0 0 16px rgba(255,217,61,0.35); text-align:center; line-height:1; }
-.rev-sub { font-size:0.62rem; color:var(--muted); font-weight:700; text-align:center; margin-top:3px; }
-.rev-bar { height:7px; background:var(--bg); border-radius:4px; overflow:hidden; margin-top:10px; }
-.rev-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--ydark),var(--yellow),var(--pink)); transition:width 0.8s ease; width:0%; }
-.rev-rates { font-size:0.52rem; color:var(--dim); margin-top:6px; text-align:center; }
-
-/* ── HYPE ── */
-.hype-row { display:flex; align-items:center; gap:8px; }
-.hype-bar-wrap { flex:1; height:7px; background:var(--bg); border-radius:4px; overflow:hidden; }
-.hype-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--purple),var(--yellow),var(--pink)); transition:width 0.6s ease; width:0%; }
-.hype-badge { padding:3px 10px; border-radius:20px; font-size:0.58rem; font-weight:800; letter-spacing:1px; transition:all 0.4s; }
-.hype-badge.chill    { background:rgba(199,125,255,0.2); color:var(--purple); border:1px solid rgba(199,125,255,0.4); }
-.hype-badge.hyped    { background:rgba(255,217,61,0.2);  color:var(--yellow); border:1px solid rgba(255,217,61,0.5); }
-.hype-badge.overload { background:rgba(255,107,157,0.2); color:var(--pink);   border:1px solid rgba(255,107,157,0.5); animation:bpulse 0.7s infinite; }
-@keyframes bpulse{0%,100%{opacity:1}50%{opacity:0.5}}
-
-/* ── ACTIVITY LOG ── */
-.log-list { max-height:200px; overflow-y:auto; }
-.log-list::-webkit-scrollbar { width:3px; }
-.log-list::-webkit-scrollbar-thumb { background:var(--dim); border-radius:2px; }
-.log-item { display:flex; align-items:baseline; gap:7px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.78rem; animation:slide 0.2s ease; }
-.log-item:last-child { border:none; }
+/* chat log */
+.log-list{max-height:380px;overflow-y:auto;display:flex;flex-direction:column;}
+.log-list::-webkit-scrollbar{width:3px;}
+.log-list::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px;}
+.log-item{display:flex;align-items:baseline;gap:6px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.88rem;animation:slide 0.2s ease;word-break:break-word;}
+.log-item:last-child{border:none;}
+.log-item.is-mention{background:rgba(255,217,61,0.08);border-radius:6px;padding:8px 6px;margin:2px 0;}
 @keyframes slide{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
-.log-pill { padding:2px 7px; border-radius:20px; font-size:0.52rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; flex-shrink:0; white-space:nowrap; }
-.log-pill.bits { background:rgba(255,217,61,0.12); color:var(--ydark); border:1px solid rgba(255,217,61,0.25); }
-.log-pill.sub  { background:rgba(255,107,157,0.12); color:var(--pink);  border:1px solid rgba(255,107,157,0.25); }
-.log-pill.big  { background:rgba(199,125,255,0.12); color:var(--purple);border:1px solid rgba(199,125,255,0.25); }
-.log-name { font-weight:800; font-size:0.75rem; flex-shrink:0; }
-.log-msg  { flex:1; color:#c8d0f0; }
-.log-rev  { font-size:0.6rem; color:var(--green); font-weight:800; flex-shrink:0; }
-.log-time { font-size:0.52rem; color:var(--dim); flex-shrink:0; margin-left:3px; }
-.log-empty { padding:20px; text-align:center; font-size:0.68rem; color:var(--dim); font-style:italic; letter-spacing:1px; }
-.log-clear { font-size:0.52rem; color:var(--dim); cursor:pointer; font-weight:800; letter-spacing:1px; background:none; border:none; font-family:inherit; transition:color 0.2s; }
-.log-clear:hover { color:var(--pink); }
+.log-name{font-weight:800;font-size:0.85rem;flex-shrink:0;white-space:nowrap;}
+.log-colon{color:var(--dim);flex-shrink:0;font-size:0.8rem;}
+.log-msg{flex:1;color:#c8d0f0;}
+.log-time{font-size:0.65rem;color:var(--dim);flex-shrink:0;margin-left:4px;white-space:nowrap;}
+.log-empty{padding:30px 20px;text-align:center;font-size:0.8rem;color:var(--dim);font-style:italic;}
 
-/* ── CONNECTION SECTIONS ── */
-.conn-fields { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
-.conn-input { width:100%; background:var(--bg); border:1.5px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:700; outline:none; transition:border-color 0.2s; }
-.conn-input:focus { border-color:var(--pink); }
-.conn-input::placeholder { color:var(--dim); font-size:0.68rem; }
-.disc-btn { width:100%; padding:8px; background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; cursor:pointer; margin-bottom:8px; transition:all 0.2s; }
-.disc-btn:hover { border-color:var(--pink); color:var(--pink); }
-.btn-row { display:flex; gap:7px; }
-.btn-p { flex:1; padding:10px; background:linear-gradient(135deg,var(--yellow),var(--pink)); border:none; border-radius:9px; color:#0f0a1e; font-family:'Fredoka One',sans-serif; font-size:0.9rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
-.btn-p:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(255,107,157,0.35); }
-.btn-g { flex:1; padding:10px; background:transparent; border:1.5px solid var(--border); border-radius:9px; color:var(--muted); font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
-.btn-g:hover { border-color:var(--pink); color:var(--pink); }
-.conn-status { display:flex; align-items:center; gap:7px; font-size:0.58rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-top:8px; padding:8px 10px; background:var(--bg); border-radius:8px; }
-.wdot { width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.3s; }
-.wdot.live { background:var(--green); box-shadow:0 0 8px var(--green); animation:blink 2s infinite; }
-.wdot.conn { background:var(--yellow); animation:blink 0.5s infinite; }
-.wdot.err  { background:var(--pink); }
+/* controls */
+.conn-status{display:flex;align-items:center;gap:7px;font-size:0.58rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;}
+.wdot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.3s;}
+.wdot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s infinite;}
+.wdot.conn{background:var(--yellow);animation:blink 0.5s infinite;}
+.wdot.err{background:var(--pink);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 
-@keyframes hype-glow {
-  0%,100% { box-shadow: 0 0 10px rgba(255,217,61,0.3); }
-  50%      { box-shadow: 0 0 24px rgba(255,107,157,0.5); }
-}
+.btn-row{display:flex;gap:7px;}
+.btn-g{flex:1;padding:9px;background:transparent;border:1.5px solid var(--border);border-radius:9px;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.btn-g:hover{border-color:var(--pink);color:var(--pink);}
 
-/* overlay status indicator */
-.overlay-status { display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.55rem; color:var(--dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; padding:6px; background:var(--bg2); border-radius:8px; border:1px solid var(--border); }
+.slider-row{display:flex;align-items:center;gap:10px;font-size:0.65rem;color:var(--muted);font-weight:800;}
+.slider-row input[type=range]{flex:1;accent-color:var(--yellow);}
+.slider-val{color:var(--yellow);font-weight:800;min-width:20px;text-align:right;}
 </style>
 </head>
 <body>
 
-<div class="dock-title">AsianDiva__ ✨</div>
-<div class="dock-hint">Private Dashboard · Viewers cannot see this</div>
+<div class="dock-title">Dave's Chat 💬</div>
 
-<!-- OVERLAY CONNECTION STATUS -->
+
 <div class="overlay-status">
   <div class="wdot" id="overlay-dot"></div>
-  <span id="overlay-status-txt">Waiting for overlay…</span>
+  <span id="overlay-txt">Waiting for overlay…</span>
 </div>
 
-<!-- SESSION STATS -->
-<div class="card">
-  <div class="card-lbl">Session Stats</div>
-  <div class="stats-row">
-    <div class="stat"><div class="stat-v" id="d-bits" style="color:var(--yellow)">0</div><div class="stat-l">Total Bits</div></div>
-    <div class="stat"><div class="stat-v" id="d-subs" style="color:var(--pink)">0</div><div class="stat-l">Total Subs</div></div>
-    <div class="stat"><div class="stat-v" id="d-time" style="color:var(--green)">0:00</div><div class="stat-l">Connected</div></div>
+<!-- CHAT LOG -->
+<!-- STREAM INFO -->
+<div style="background:#17102b;border:1px solid #2e1e50;border-radius:12px;padding:10px 12px;margin-bottom:10px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <span style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#9B7BB8;">📡 Stream Info</span>
+    <span id="stream-live-badge" style="display:none;background:rgba(255,107,157,0.2);color:#FF6B9D;border:1px solid rgba(255,107,157,0.4);border-radius:20px;padding:1px 8px;font-size:9px;letter-spacing:1px;">● LIVE</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+    <div style="background:#1a0a2e;border:1.5px solid rgba(255,217,61,0.3);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;flex-shrink:0;">👁</span>
+      <div>
+        <div id="viewer-count" style="font-family:'Fredoka One',sans-serif;font-size:1.1rem;line-height:1;color:#FFD93D;">—</div>
+        <div style="font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#9B7BB8;margin-top:2px;">Viewers</div>
+      </div>
+    </div>
+    <div style="background:#1a0a2e;border:1.5px solid rgba(110,231,183,0.3);border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;flex-shrink:0;">⏱</span>
+      <div>
+        <div id="stream-uptime" style="font-family:'Fredoka One',sans-serif;font-size:1.1rem;line-height:1;color:#6EE7B7;">—</div>
+        <div style="font-size:8px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#9B7BB8;margin-top:2px;">Uptime</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#0f0a1e;border:1px solid #2e1e50;border-radius:8px;padding:8px 10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#9B7BB8;">Stream Title</span>
+      <div style="display:flex;gap:4px;">
+        <button id="edit-btn" onclick="editTitle()" style="font-size:8px;font-weight:800;background:transparent;border:1px solid #2e1e50;border-radius:5px;color:#9B7BB8;padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;">✏️ Edit</button>
+        <button id="save-btn" onclick="saveTitle()" style="display:none;font-size:8px;font-weight:800;background:rgba(255,217,61,0.15);border:1px solid #FFD93D;border-radius:5px;color:#FFD93D;padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;">💾 Save</button>
+        <button id="cancel-btn" onclick="cancelEdit()" style="display:none;font-size:8px;font-weight:800;background:transparent;border:1px solid #2e1e50;border-radius:5px;color:#9B7BB8;padding:2px 7px;cursor:pointer;font-family:'Nunito',sans-serif;">✕</button>
+      </div>
+    </div>
+    <div id="stream-title" style="font-size:12px;font-weight:700;color:#c8d0f0;line-height:1.4;">Not live</div>
+    <input id="title-input" type="text" maxlength="140" placeholder="Enter stream title…"
+      style="display:none;width:100%;background:#17102b;border:1.5px solid #FFD93D;color:#F5E6FF;padding:6px 8px;border-radius:7px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;outline:none;box-sizing:border-box;"
+      onkeydown="if(event.key==='Enter') saveTitle()"/>
   </div>
 </div>
 
-<!-- REVENUE -->
-<div class="card">
-  <div class="card-lbl">Your Revenue (Private)</div>
-  <div class="rev-num" id="d-rev">$0.00</div>
-  <div class="rev-sub">of $100.00 goal</div>
-  <div class="rev-bar"><div class="rev-fill" id="d-rev-fill"></div></div>
-  <div class="rev-rates">Bits $0.01 · T1 ~$2.50 · T2 ~$5.00 · T3 ~$12.50</div>
+<!-- PINNED MESSAGE -->
+<div class="pinned-msg" id="pinned-msg">
+  <div class="pinned-lbl">📌 Pinned Message</div>
+  <div class="pinned-user" id="pinned-user"></div>
+  <div class="pinned-text" id="pinned-text"></div>
 </div>
 
-<!-- HYPE -->
-<div class="card">
-  <div class="card-lbl">Hype Level</div>
-  <div class="hype-row">
-    <div class="hype-bar-wrap"><div class="hype-bar" id="d-hype-bar"></div></div>
-    <div class="hype-badge chill" id="d-hype-badge">😊 Chill</div>
-  </div>
-</div>
-
-<!-- ACTIVITY LOG -->
 <div class="card">
   <div class="card-lbl">
-    <span>Recent Activity</span>
+    <span>📋 Chat Log</span>
     <div style="display:flex;align-items:center;gap:8px;">
-      <span id="d-log-count" style="color:var(--yellow);font-size:0.6rem;font-weight:800;">0 msgs</span>
-      <button class="log-clear" onclick="clearLog()">Clear</button>
+      <span id="log-count" style="color:var(--yellow);font-size:0.6rem;font-weight:800;">0 msgs</span>
+      <button onclick="sendClear()" style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid #2e1e50;border-radius:6px;color:#9B7BB8;padding:2px 8px;cursor:pointer;font-family:'Nunito',sans-serif;">🗑 Clear</button>
     </div>
   </div>
-  <div class="log-list" id="d-log">
-    <div class="log-empty" id="d-log-empty">No activity yet this stream…</div>
+  <div class="log-list" id="log-list">
+    <div class="log-empty" id="log-empty">Waiting for chat…</div>
   </div>
-</div>
-
-<!-- TWITCH CONNECTION -->
-<div class="card">
-  <div class="card-lbl">🔌 Twitch Connection</div>
-  <div id="tw-fields" class="conn-fields">
-    <input class="conn-input" id="in-client" type="text"     placeholder="Client ID"/>
-    <input class="conn-input" id="in-token"  type="password" placeholder="Access Token"/>
-    <input class="conn-input" id="in-uid"    type="text"     placeholder="Broadcaster ID"/>
-  </div>
-  <div id="tw-disc" style="display:none;"><button class="disc-btn" onclick="sendDisconnect()">✕ Disconnect</button></div>
-  <div class="btn-row">
-    <button class="btn-p" id="tw-btn" onclick="sendConnect()">⚡ Connect</button>
-    <button class="btn-g" onclick="sendCmd('test_goal')">🎉 Test</button>
-    <button class="btn-g" onclick="sendCmd('reset')">↺ Reset</button>
-  </div>
-  <div class="conn-status"><div class="wdot" id="tw-dot"></div><span id="tw-status">Not connected</span></div>
-</div>
-
-<!-- HYPE TRAIN -->
-<div class="card">
-  <div class="card-lbl">🚂 Hype Train Mode</div>
-
-  <!-- ALERT shows when train is active -->
-  <div id="ht-alert" style="display:none; background:linear-gradient(135deg,rgba(255,217,61,0.12),rgba(255,107,157,0.12)); border:1.5px solid var(--yellow); border-radius:10px; padding:12px 14px; margin-bottom:10px; animation:hype-glow 1.2s ease-in-out infinite;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <span style="font-family:'Fredoka One',sans-serif;font-size:0.9rem;background:linear-gradient(90deg,var(--yellow),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">🚂 Hype Train!</span>
-      <span style="font-family:'Fredoka One',sans-serif;font-size:0.85rem;color:var(--yellow);" id="ht-level-display">Level 1</span>
-    </div>
-    <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;margin-bottom:5px;">
-      <div id="ht-prog-fill" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--yellow),var(--pink));transition:width 0.8s ease;width:0%;"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:0.55rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">
-      <span id="ht-prog-pct">0%</span>
-      <span id="ht-expiry">—</span>
+  <div style="position:relative;">
+    <div class="cmd-menu" id="cmd-menu"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;padding:10px 12px;background:#0f0a1e;border-radius:10px;border:1px solid #2e1e50;align-items:center;">
+    <input id="chat-input" type="text" placeholder="Type / for commands…" maxlength="500"
+      oninput="handleInput(this.value)"
+      onkeydown="handleKeydown(event)"
+      style="flex:1;background:transparent;border:none;color:#F5E6FF;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;outline:none;"/>
+    <button id="send-btn" onclick="sendMessage()" disabled
+      style="padding:7px 14px;background:#17102b;border:1px solid #2e1e50;border-radius:8px;color:#FFD93D;font-family:'Fredoka One',sans-serif;font-size:0.8rem;letter-spacing:1px;cursor:pointer;flex-shrink:0;opacity:0.3;transition:all 0.2s;">Send</button>
     </div>
   </div>
-
-  <div class="btn-row">
-    <button class="btn-g" onclick="sendCmd('test_ht')" style="flex:1;">🚂 Test</button>
+  <div style="display:flex;align-items:center;gap:7px;font-size:0.58rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:8px;">
+    <div class="wdot" id="chat-dot"></div>
+    <span id="chat-status">Not connected</span>
   </div>
-  <div class="conn-status" style="margin-top:8px;"><div class="wdot" id="ht-dot"></div><span id="ht-status">Waiting…</span></div>
 </div>
 
 <script>
-// ── BROADCAST CHANNEL ─────────────────────────────────────────────
-const BC = new BroadcastChannel('asiandiva-tracker');
+const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
+
+// ── IRC SEND CONNECTION ───────────────────────────────────────────
+let ircWs = null, ircConnected = false, ircToken = null;
+
+function connectIRCSend(token) {
+  ircToken = token;
+  if(ircWs) { ircWs.onclose = null; ircWs.close(); }
+  ircWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+  ircWs.onopen = () => {
+    ircWs.send('PASS oauth:' + token);
+    ircWs.send('NICK asiandiva__');
+    ircWs.send('JOIN #asiandiva__');
+  };
+  ircWs.onmessage = (e) => {
+    if(e.data.includes('366') || e.data.includes('JOIN #')) {
+      ircConnected = true;
+      const btn = document.getElementById('send-btn');
+      if(btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.borderColor = '#FFD93D'; }
+    }
+  };
+  ircWs.onclose = () => {
+    ircConnected = false;
+    if(ircToken) setTimeout(() => connectIRCSend(ircToken), 5000);
+  };
+}
+
+function sendIRC(text) {
+  if(!ircConnected || !ircWs) return false;
+  ircWs.send('PRIVMSG #asiandiva__ :' + text);
+  return true;
+}
+const BROADCASTER_ID = '716266770';
+let streamStartTime = null;
+let uptimeInterval = null;
+
+function editTitle() {
+  const txt = document.getElementById('stream-title');
+  const inp = document.getElementById('title-input');
+  inp.value = txt.textContent;
+  txt.style.display = 'none';
+  inp.style.display = 'block';
+  document.getElementById('edit-btn').style.display = 'none';
+  document.getElementById('save-btn').style.display = 'inline';
+  document.getElementById('cancel-btn').style.display = 'inline';
+  inp.focus();
+}
+
+function cancelEdit() {
+  document.getElementById('stream-title').style.display = 'block';
+  document.getElementById('title-input').style.display = 'none';
+  document.getElementById('edit-btn').style.display = 'inline';
+  document.getElementById('save-btn').style.display = 'none';
+  document.getElementById('cancel-btn').style.display = 'none';
+}
+
+async function saveTitle() {
+  const inp = document.getElementById('title-input');
+  const newTitle = inp.value.trim();
+  if (!newTitle || !window._chatToken) return;
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/channels?broadcaster_id=' + BROADCASTER_ID, {
+      method: 'PATCH',
+      headers: { 'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2', 'Authorization': 'Bearer ' + window._chatToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTitle })
+    });
+    if (r.ok || r.status === 204) {
+      document.getElementById('stream-title').textContent = newTitle;
+      cancelEdit();
+    } else {
+      alert('Failed to update title — token may need channel:manage:broadcast scope');
+    }
+  } catch(e) { alert('Error updating title'); }
+}
+
+async function fetchStreamInfo() {
+  // Get token from tracker dock BC or use stored one
+  if (!window._chatToken) return;
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/streams?user_id=' + BROADCASTER_ID, {
+      headers: { 'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2', 'Authorization': 'Bearer ' + window._chatToken }
+    });
+    const data = await r.json();
+    const stream = data.data?.[0];
+    if (stream) {
+      document.getElementById('viewer-count').textContent = stream.viewer_count.toLocaleString();
+      document.getElementById('stream-title').textContent = stream.title || 'No title set';
+      document.getElementById('stream-live-badge').style.display = 'inline';
+      if (!streamStartTime) {
+        streamStartTime = new Date(stream.started_at);
+        uptimeInterval = setInterval(updateUptime, 1000);
+      }
+    } else {
+      document.getElementById('viewer-count').textContent = '—';
+      document.getElementById('stream-title').textContent = 'Not live';
+      document.getElementById('stream-live-badge').style.display = 'none';
+      document.getElementById('stream-uptime').textContent = '—';
+      streamStartTime = null;
+      clearInterval(uptimeInterval);
+    }
+  } catch(e) {}
+}
+
+function updateUptime() {
+  if (!streamStartTime) return;
+  const elapsed = Math.floor((Date.now() - streamStartTime) / 1000);
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  document.getElementById('stream-uptime').textContent =
+    (h > 0 ? h + ':' : '') + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
 
 BC.onmessage = (e) => {
   const msg = e.data;
 
-  // overlay is alive
-  const od = document.getElementById('overlay-dot');
-  od.className = 'wdot live';
-  document.getElementById('overlay-status-txt').textContent = 'Overlay connected';
+  // overlay alive
+  document.getElementById('overlay-dot').className = 'wdot live';
+  document.getElementById('overlay-txt').textContent = 'Overlay connected';
+  const sb=document.getElementById('send-btn'); sb.disabled=false; sb.style.opacity='1'; sb.style.borderColor='#FFD93D';
 
-  if(msg.type === 'revenue') {
-    document.getElementById('d-rev').textContent = msg.display;
-    document.getElementById('d-rev-fill').style.width = Math.round(msg.pct) + '%';
-  }
-
-  if(msg.type === 'hype') {
-    document.getElementById('d-hype-bar').style.width = Math.round(msg.pct) + '%';
-    const b = document.getElementById('d-hype-badge');
-    b.textContent = msg.badge; b.className = 'hype-badge ' + msg.cls;
-  }
-
-  if(msg.type === 'stats') {
-    bumpVal('d-bits', msg.bits.toLocaleString());
-    bumpVal('d-subs', msg.subs.toString());
-  }
-
-  if(msg.type === 'timer') {
-    document.getElementById('d-time').textContent = msg.text;
-  }
-
-  if(msg.type === 'activity') {
-    addLogItem(msg.pill, msg.user, msg.desc, msg.rev, msg.isBig);
+  if(msg.type === 'message') {
+    addLogItem(msg.username, msg.text, msg.color, msg.isMention, msg.time);
   }
 
   if(msg.type === 'status') {
-    setTwDot(msg.state, msg.text);
-    if(msg.state === 'live') {
-      document.getElementById('tw-fields').style.display = 'none';
-      document.getElementById('tw-disc').style.display   = 'block';
-      document.getElementById('tw-btn').style.display    = 'none';
-    } else if(msg.state === 'off') {
-      document.getElementById('tw-fields').style.display = 'flex';
-      document.getElementById('tw-disc').style.display   = 'none';
-      document.getElementById('tw-btn').style.display    = 'block';
-    }
+    const d = document.getElementById('chat-dot');
+    d.className = 'wdot' + (msg.state==='live'?' live':msg.state==='conn'?' conn':msg.state==='err'?' err':'');
+    document.getElementById('chat-status').textContent = msg.text;
   }
 
-  if(msg.type === 'ht_status') {
-    setHtDot(msg.state, msg.text);
+  if(msg.type === 'token') {
+    window._chatToken = msg.token;
+    fetchStreamInfo();
+    setInterval(fetchStreamInfo, 60000);
+    if(!ircConnected) connectIRCSend(msg.token);
   }
 
-  if(msg.type === 'ht_begin' || msg.type === 'ht_progress') {
-    showHtAlert(msg.level, msg.pct, msg.ended);
-  }
-
-  if(msg.type === 'ht_end') {
-    showHtAlert(msg.level, 100, true);
-    setTimeout(() => {
-      document.getElementById('ht-alert').style.display = 'none';
-    }, 8000);
-  }
-
-  if(msg.type === 'reset_done') {
-    document.getElementById('d-rev').textContent = '$0.00';
-    document.getElementById('d-rev-fill').style.width = '0%';
-    document.getElementById('d-hype-bar').style.width = '0%';
-    const b = document.getElementById('d-hype-badge');
-    b.textContent = '😊 Chill'; b.className = 'hype-badge chill';
-    document.getElementById('d-bits').textContent = '0';
-    document.getElementById('d-subs').textContent = '0';
-    document.getElementById('d-time').textContent = '0:00';
+  if(msg.type === 'cleared') {
     clearLog();
+  }
+
+  if(msg.type === 'event') {
+    addEventItem(msg.eventType, msg.eventData, msg.time);
+  }
+
+  if(msg.type === 'pinned') {
+    const el = document.getElementById('pinned-msg');
+    el.style.display = 'block';
+    document.getElementById('pinned-user').textContent = msg.username;
+    document.getElementById('pinned-text').textContent = msg.text;
+  }
+
+  if(msg.type === 'unpinned') {
+    document.getElementById('pinned-msg').style.display = 'none';
+  }
+
+  if(msg.type === 'ping') {
+    document.getElementById('overlay-dot').className = 'wdot live';
+    document.getElementById('overlay-txt').textContent = 'Overlay connected';
   }
 };
 
-// ── SEND COMMANDS TO OVERLAY ──────────────────────────────────────
-function sendConnect() {
-  const clientId = document.getElementById('in-client').value.trim();
-  const token    = document.getElementById('in-token').value.trim().replace(/^oauth:/,'');
-  const uid      = document.getElementById('in-uid').value.trim();
-  if(!clientId||!token||!uid) { alert('Fill in all three fields!'); return; }
-  BC.postMessage({ type:'connect', clientId, token, uid });
-  setTwDot('conn', 'Connecting…');
-}
-
-function sendDisconnect() {
-  BC.postMessage({ type:'disconnect' });
-}
-
-function sendCmd(type) {
-  BC.postMessage({ type });
-}
-
-// ── UI HELPERS ────────────────────────────────────────────────────
-function bumpVal(id, val) {
-  const el = document.getElementById(id);
-  el.textContent = val;
-  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-  setTimeout(() => el.classList.remove('bump'), 250);
-}
-
-function addLogItem(pill, user, desc, rev, isBig) {
-  document.getElementById('d-log-empty')?.remove();
+function addLogItem(username, text, color, isMention, time) {
+  document.getElementById('log-empty')?.remove();
   logCount++;
-  document.getElementById('d-log-count').textContent = logCount + ' msg' + (logCount !== 1 ? 's' : '');
-  const list = document.getElementById('d-log');
-  const t    = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  const pillCls = isBig ? 'big' : pill;
-  const pillTxt = isBig ? '⭐ BIG' : pill === 'bits' ? 'BITS' : 'SUB';
-  const nameColor = pill === 'bits' ? 'var(--yellow)' : 'var(--pink)';
+  document.getElementById('log-count').textContent = logCount.toLocaleString() + ' msg' + (logCount !== 1 ? 's' : '');
+
+  const list = document.getElementById('log-list');
   const item = document.createElement('div');
-  item.className = 'log-item';
+  item.className = 'log-item' + (isMention ? ' is-mention' : '');
   item.innerHTML =
-    '<span class="log-pill '+pillCls+'">'+pillTxt+'</span>'+
-    '<span class="log-name" style="color:'+nameColor+'">'+user+'</span>'+
-    '<span class="log-msg"> '+desc+'</span>'+
-    '<span class="log-rev">'+rev+'</span>'+
-    '<span class="log-time">'+t+'</span>';
-  list.prepend(item);
-  while(list.children.length > 50) list.removeChild(list.lastChild);
-  list.scrollTop = 0;
+    '<span class="log-name" style="color:' + (color||'#FFD93D') + '">' + escHtml(username) + '</span>' +
+    '<span class="log-colon">:</span>' +
+    '<span class="log-msg">' + text + '</span>' +
+    '<span class="log-time">' + time + '</span>';
+  list.appendChild(item);
+  while(list.children.length > 200) list.removeChild(list.firstChild);
+  list.scrollTop = list.scrollHeight;
+}
+
+function addEventItem(type, data, time) {
+  document.getElementById('log-empty')?.remove();
+  logCount++;
+  document.getElementById('log-count').textContent = logCount.toLocaleString() + ' msg' + (logCount !== 1 ? 's' : '');
+  const list = document.getElementById('log-list');
+  const item = document.createElement('div');
+  item.className = 'event-item ' + type;
+
+  let icon = '⭐', html = '';
+
+  if(type === 'sub') {
+    icon = '⭐';
+    html = '<span class="event-name" style="color:#FF6B9D">' + escHtml(data.user) + '</span> ' +
+           (data.months > 1 ? 'resubscribed for <strong>' + data.months + ' months!</strong>' : 'just subscribed! 🎉') +
+           (data.msg ? '<br><span style="color:#c8d0f0;font-size:0.72rem;">"' + escHtml(data.msg) + '"</span>' : '');
+  } else if(type === 'giftsub') {
+    icon = '🎁';
+    html = '<span class="event-name" style="color:#C77DFF">' + escHtml(data.user) + '</span> gifted ' +
+           (data.count > 1 ? '<strong>' + data.count + ' subs</strong> to the community!' : 'a sub to <strong>' + escHtml(data.recipient) + '</strong>!');
+  } else if(type === 'raid') {
+    icon = '🚀';
+    html = '<span class="event-name" style="color:#FFD93D">' + escHtml(data.user) + '</span> is raiding with <strong>' + Number(data.viewers).toLocaleString() + ' viewers!</strong> 🎉';
+  } else if(type === 'bits') {
+    icon = '💎';
+    html = '<span class="event-name" style="color:#6EE7B7">' + escHtml(data.user) + '</span> cheered <strong>' + Number(data.bits).toLocaleString() + ' bits!</strong>' +
+           (data.msg ? '<br><span style="color:#c8d0f0;font-size:0.72rem;">"' + escHtml(data.msg) + '"</span>' : '');
+  } else if(type === 'firstchat') {
+    icon = '👋';
+    html = '<span class="event-name" style="color:#378ADD">' + escHtml(data.user) + '</span> chatted for the first time! Welcome to Squad Crime! 💛';
+  } else if(type === 'redemption') {
+    icon = '🟣';
+    html = '<span class="event-name" style="color:#9147FF">' + escHtml(data.user) + '</span> redeemed <strong>' + escHtml(data.reward) + '</strong>' +
+           (data.msg ? '<br><span style="color:#c8d0f0;font-size:0.72rem;">"' + escHtml(data.msg) + '"</span>' : '');
+  }
+
+  item.innerHTML = '<span class="event-icon">' + icon + '</span><span class="event-text">' + html + '</span><span class="event-time">' + time + '</span>';
+  list.appendChild(item);
+  while(list.children.length > 200) list.removeChild(list.firstChild);
+  list.scrollTop = list.scrollHeight;
 }
 
 function clearLog() {
   logCount = 0;
-  document.getElementById('d-log-count').textContent = '0 msgs';
-  document.getElementById('d-log').innerHTML = '<div class="log-empty" id="d-log-empty">No activity yet this stream…</div>';
+  document.getElementById('log-count').textContent = '0 msgs';
+  document.getElementById('log-list').innerHTML = '<div class="log-empty" id="log-empty">Waiting for chat…</div>';
 }
 
-function setTwDot(state, text) {
-  document.getElementById('tw-dot').className = 'wdot' + (state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
-  document.getElementById('tw-status').textContent = text;
+// ── SLASH COMMANDS ───────────────────────────────────────────────
+const COMMANDS = [
+  { name:'/ban',         desc:'Ban a user',              usage:'/ban [user]',           action:'ban' },
+  { name:'/unban',       desc:'Unban a user',            usage:'/unban [user]',         action:'unban' },
+  { name:'/timeout',     desc:'Timeout a user',          usage:'/timeout [user] [sec]', action:'timeout' },
+  { name:'/untimeout',   desc:'Remove timeout',          usage:'/untimeout [user]',     action:'untimeout' },
+  { name:'/slow',        desc:'Slow mode on',            usage:'/slow [seconds]',       action:'slow' },
+  { name:'/slowoff',     desc:'Slow mode off',           usage:'/slowoff',              action:'slowoff' },
+  { name:'/subscribers', desc:'Subscribers only mode',   usage:'/subscribers',          action:'subscribers' },
+  { name:'/subscribersoff', desc:'Disable subs only',   usage:'/subscribersoff',       action:'subscribersoff' },
+  { name:'/emoteonly',   desc:'Emote only mode',         usage:'/emoteonly',            action:'emoteonly' },
+  { name:'/emoteonlyoff',desc:'Disable emote only',      usage:'/emoteonlyoff',         action:'emoteonlyoff' },
+  { name:'/clear',       desc:'Clear chat',              usage:'/clear',                action:'clear' },
+  { name:'/raid',        desc:'Raid a channel',          usage:'/raid [channel]',       action:'raid' },
+  { name:'/unraid',      desc:'Cancel raid',             usage:'/unraid',               action:'unraid' },
+  { name:'/shoutout',    desc:'Shoutout a user',         usage:'/shoutout [user]',      action:'shoutout' },
+  { name:'/color',       desc:'Change your chat color',  usage:'/color [color]',        action:'color' },
+  { name:'/me',          desc:'Action message',          usage:'/me [message]',         action:'me' },
+];
+
+let activeCmd = -1;
+let filteredCmds = [];
+
+function handleInput(val) {
+  if (val.startsWith('/')) {
+    const search = val.toLowerCase();
+    filteredCmds = COMMANDS.filter(c => c.name.startsWith(search));
+    activeCmd = -1;
+    renderCmdMenu();
+  } else {
+    hideCmdMenu();
+  }
 }
 
-function setHtDot(state, text) {
-  document.getElementById('ht-dot').className = 'wdot' + (state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
-  document.getElementById('ht-status').textContent = text;
+function renderCmdMenu() {
+  const menu = document.getElementById('cmd-menu');
+  if (!filteredCmds.length) { hideCmdMenu(); return; }
+  menu.innerHTML = filteredCmds.map((c, i) =>
+    '<div class="cmd-item' + (i === activeCmd ? ' active' : '') + '" onclick="selectCmd(' + i + ')">' +
+    '<span class="cmd-name">' + c.name + '</span>' +
+    '<span class="cmd-desc">' + c.desc + '</span>' +
+    '<span class="cmd-usage">' + c.usage + '</span>' +
+    '</div>'
+  ).join('');
+  menu.style.display = 'block';
 }
 
-function showHtAlert(level, pct, ended) {
-  const alert = document.getElementById('ht-alert');
-  alert.style.display = 'block';
-  document.getElementById('ht-level-display').textContent = ended ? 'Level ' + level + ' — Done!' : 'Level ' + level;
-  document.getElementById('ht-prog-fill').style.width = Math.round(pct) + '%';
-  document.getElementById('ht-prog-pct').textContent = Math.round(pct) + '%';
-  document.getElementById('ht-expiry').textContent = ended ? '🎉 Complete!' : 'In progress…';
-  alert.style.animation = ended ? 'none' : 'hype-glow 1.2s ease-in-out infinite';
+function hideCmdMenu() {
+  document.getElementById('cmd-menu').style.display = 'none';
+  filteredCmds = [];
+  activeCmd = -1;
+}
+
+function selectCmd(i) {
+  const cmd = filteredCmds[i];
+  const input = document.getElementById('chat-input');
+  input.value = cmd.usage;
+  hideCmdMenu();
+  input.focus();
+  // position cursor after command name
+  const pos = cmd.usage.indexOf('[');
+  if (pos > -1) { input.setSelectionRange(pos, cmd.usage.lastIndexOf(']') + 1); }
+}
+
+function handleKeydown(e) {
+  const menu = document.getElementById('cmd-menu');
+  if (menu.style.display === 'block') {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeCmd = Math.min(activeCmd + 1, filteredCmds.length - 1);
+      renderCmdMenu();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeCmd = Math.max(activeCmd - 1, -1);
+      renderCmdMenu();
+    } else if (e.key === 'Tab' || e.key === 'Enter') {
+      e.preventDefault();
+      if (activeCmd >= 0) selectCmd(activeCmd);
+      else if (filteredCmds.length > 0) selectCmd(0);
+      return;
+    } else if (e.key === 'Escape') {
+      hideCmdMenu();
+      return;
+    }
+  }
+  if (e.key === 'Enter') sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  if(sendIRC(text)) {
+    input.value = '';
+  } else {
+    alert('Not connected to chat yet!');
+  }
+}
+
+function sendClear()   { BC.postMessage({type:'clear'}); clearLog(); }
+function sendTest()    { BC.postMessage({type:'test'}); }
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
