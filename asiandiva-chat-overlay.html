@@ -308,14 +308,7 @@ function connectIRC() {
 
   ws.onopen = () => {
     ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
-    const p = new URLSearchParams(window.location.search);
-    const tok = p.get('token') || p.get('ht_token');
-    if(tok) {
-      ws.send('PASS oauth:' + tok);
-      ws.send('NICK asiandiva__');
-    } else {
-      ws.send('NICK justinfan' + Math.floor(Math.random() * 99999));
-    }
+    ws.send('NICK justinfan' + Math.floor(Math.random() * 99999));
     ws.send('JOIN #' + channel);
   };
 

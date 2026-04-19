@@ -145,6 +145,103 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 <script>
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
+
+// ── IRC CONNECTION (read + send) ─────────────────────────────────
+let ircWs = null, ircConnected = false, ircToken = null;
+const DOCK_MENTION_WORDS = ['asiandiva__', 'asiandiva', 'dave', '@asiandiva__', '@asiandiva', '@dave'];
+
+function connectIRC(token) {
+  ircToken = token;
+  if(ircWs) { ircWs.onclose = null; ircWs.close(); }
+  ircWs = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+
+  ircWs.onopen = () => {
+    ircWs.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+    ircWs.send('PASS oauth:' + token);
+    ircWs.send('NICK asiandiva__');
+    ircWs.send('JOIN #asiandiva__');
+  };
+
+  ircWs.onmessage = (e) => {
+    const lines = e.data.split('\r\n');
+    lines.forEach(line => {
+      if(!line) return;
+      if(line.startsWith('PING')) { ircWs.send('PONG :tmi.twitch.tv'); return; }
+
+      if(line.includes('366') || line.includes('JOIN #asiandiva__')) {
+        ircConnected = true;
+        const btn = document.getElementById('send-btn');
+        if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
+        document.getElementById('chat-dot').className = 'wdot live';
+        document.getElementById('chat-status').textContent = 'Live · #asiandiva__';
+      }
+
+      if(line.includes('PRIVMSG')) {
+        try {
+          const tagMatch = line.match(/^@([^ ]+)/);
+          let username='', color='', emoteTags='';
+          if(tagMatch) {
+            const tags={};
+            tagMatch[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tags[k]=v.join('=');});
+            username = tags['display-name'] || '';
+            color    = tags['color'] || '';
+            emoteTags = tags['emotes'] || '';
+          }
+          if(!username) { const m=line.match(/:([^!]+)!/); if(m) username=m[1]; }
+          const msgM = line.match(/PRIVMSG #\S+ :(.+)/);
+          if(!msgM || !username) return;
+          const text = msgM[1].trim();
+          const userColor = color || colorForUser(username);
+          const isMention = DOCK_MENTION_WORDS.some(w => text.toLowerCase().includes(w.toLowerCase()));
+          const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+          addLogItem(username, text, userColor, isMention, t);
+        } catch(e) {}
+      }
+
+      if(line.includes('USERNOTICE')) {
+        try {
+          const tagMatch = line.match(/^@([^ ]+)/);
+          if(!tagMatch) return;
+          const tags={};
+          tagMatch[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tags[k]=v.join('=');});
+          const msgId = tags['msg-id']||'';
+          const user  = tags['display-name']||'Someone';
+          const color = tags['color']||'#C77DFF';
+          const sysMsg = (tags['system-msg']||'').replace(/\s/g,' ');
+          const msgM = line.match(/USERNOTICE #\S+ :(.*)/);
+          const msg  = msgM ? msgM[1].trim() : '';
+          const t    = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+          if(msgId==='sub'||msgId==='resub') addEventItem('sub',{user,color,sysMsg,msg,months:tags['msg-param-cumulative-months']||'1'},t);
+          if(msgId==='subgift'||msgId==='submysterygift') addEventItem('giftsub',{user,color,count:tags['msg-param-mass-gift-count']||'1',recipient:tags['msg-param-recipient-display-name']||''},t);
+          if(msgId==='raid') addEventItem('raid',{user,color,viewers:tags['msg-param-viewerCount']||'0'},t);
+        } catch(e) {}
+      }
+    });
+  };
+
+  ircWs.onclose = () => {
+    ircConnected = false;
+    document.getElementById('chat-dot').className = 'wdot conn';
+    document.getElementById('chat-status').textContent = 'Reconnecting…';
+    if(ircToken) setTimeout(() => connectIRC(ircToken), 5000);
+  };
+}
+
+function colorForUser(name) {
+  const colors = ['#FF6B9D','#C77DFF','#6EE7B7','#FFD93D','#FF9A3C','#85B7EB'];
+  let hash = 0;
+  for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function sendIRC(text) {
+  if(!ircConnected || !ircWs) return false;
+  ircWs.send('PRIVMSG #asiandiva__ :' + text);
+  // local echo
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  addLogItem('AsianDiva__', text, '#FFD93D', false, t);
+  return true;
+}
 const BROADCASTER_ID = '716266770';
 let streamStartTime = null;
 let uptimeInterval = null;
@@ -248,6 +345,7 @@ BC.onmessage = (e) => {
     window._chatToken = msg.token;
     fetchStreamInfo();
     setInterval(fetchStreamInfo, 60000);
+    if(!ircConnected) connectIRC(msg.token);
   }
 
   if(msg.type === 'cleared') {
@@ -432,9 +530,11 @@ function sendMessage() {
   const input = document.getElementById('chat-input');
   const text  = input.value.trim();
   if (!text) return;
-  // will send via IRC when connected
-  BC.postMessage({ type:'send_msg', text });
-  input.value = '';
+  if(sendIRC(text)) {
+    input.value = '';
+  } else {
+    alert('Not connected to chat yet!');
+  }
 }
 
 function sendClear()   { BC.postMessage({type:'clear'}); clearLog(); }
