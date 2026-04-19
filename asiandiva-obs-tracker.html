@@ -723,16 +723,8 @@ function connectWS() {
         await sub(sid,'channel.subscription.gift',{broadcaster_user_id:uid});
         connected=true; setStatus('live','Live — tracking');
         startSessionTimer();
-        // try hype train separately so it doesn't break main connection
-        try {
-          await sub(sid,'channel.hype_train.begin',{broadcaster_user_id:uid});
-          await sub(sid,'channel.hype_train.progress',{broadcaster_user_id:uid});
-          await sub(sid,'channel.hype_train.end',{broadcaster_user_id:uid});
-          htConnected=true;
-          BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
-        } catch(htErr) {
-          BC.postMessage({type:'ht_status', state:'err', text:'Hype train scope missing'});
-        }
+        // connect hype train via PubSub (more reliable for client-side)
+        startHypePubSub(token, uid);
       }catch{
         setStatus('err','Auth failed — check credentials'); ws.close();
       }
@@ -806,6 +798,60 @@ function setStatus(state,text){
   const w=document.getElementById('wdot');
   if(w) w.className='wdot'+(state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
   BC.postMessage({ type:'status', state, text });
+}
+
+// ── HYPE TRAIN PUBSUB ────────────────────────────────────────────
+let pubSubWs = null;
+
+function startHypePubSub(token, broadcasterId) {
+  if(pubSubWs) { pubSubWs.onclose=null; pubSubWs.close(); }
+  pubSubWs = new WebSocket('wss://pubsub-edge.twitch.tv');
+
+  pubSubWs.onopen = () => {
+    pubSubWs.send(JSON.stringify({
+      type: 'LISTEN',
+      data: {
+        topics: ['hype-train-events-v1.' + broadcasterId],
+        auth_token: token
+      }
+    }));
+    // ping every 4 minutes to keep connection alive
+    setInterval(() => { if(pubSubWs.readyState===1) pubSubWs.send(JSON.stringify({type:'PING'})); }, 240000);
+  };
+
+  pubSubWs.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if(msg.type === 'RESPONSE') {
+      if(msg.error === '') {
+        htConnected = true;
+        BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
+      } else {
+        BC.postMessage({type:'ht_status', state:'err', text:'Hype train: ' + msg.error});
+      }
+    }
+    if(msg.type === 'MESSAGE' && msg.data?.topic?.startsWith('hype-train-events-v1')) {
+      const d = JSON.parse(msg.data.message);
+      if(d.type === 'hype-train-start' || d.type === 'hype-train-progression') {
+        const ht = d.data;
+        const level = ht.level?.value || 1;
+        const progress = ht.progress?.value || 0;
+        const goal = ht.progress?.goal || 1000;
+        const expiry = new Date(Date.now() + (ht.expires_at ? new Date(ht.expires_at) - Date.now() : 90000)).toISOString();
+        if(d.type === 'hype-train-start') enterHypeTrainMode(level, progress, goal, expiry);
+        else updateHypeTrainMode(level, progress, goal, expiry);
+      }
+      if(d.type === 'hype-train-end') {
+        const level = d.data?.ending_level?.value || d.data?.level?.value || 1;
+        endHypeTrainMode(level);
+      }
+    }
+  };
+
+  pubSubWs.onclose = () => {
+    if(htConnected) {
+      setTimeout(() => startHypePubSub(token, broadcasterId), 5000);
+    }
+  };
 }
 
 // ── HYPE TRAIN MODE ───────────────────────────────────────────────
