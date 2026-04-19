@@ -169,6 +169,7 @@ let filteredCmds = [];
     window._chatToken = tok;
     loadDockEmotes().then(() => reRenderAllMessages());
     connectIRC(tok);
+    connectEventSub(tok);
   }
 })();
 
@@ -257,6 +258,55 @@ function connectIRC(token) {
     document.getElementById('chat-dot').className = 'wdot conn';
     document.getElementById('chat-status').textContent = 'Reconnecting…';
     if(ircToken) setTimeout(() => connectIRC(ircToken), 5000);
+  };
+}
+
+// ── EVENTSUB FOR CHANNEL POINTS ──────────────────────────────────
+let eventSubWs = null;
+
+function connectEventSub(token) {
+  if(eventSubWs) { eventSubWs.onclose=null; eventSubWs.close(); }
+  eventSubWs = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
+
+  eventSubWs.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+
+    if(msg.metadata?.message_type === 'session_welcome') {
+      const sessionId = msg.payload.session.id;
+      // subscribe to channel point redemptions
+      try {
+        await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+          method:'POST',
+          headers:{
+            'Client-Id':'c76fsghzngwflbmg06o6c9hj2ffub2',
+            'Authorization':'Bearer '+token,
+            'Content-Type':'application/json'
+          },
+          body: JSON.stringify({
+            type:'channel.channel_points_custom_reward_redemption.add',
+            version:'1',
+            condition:{ broadcaster_user_id:'716266770' },
+            transport:{ method:'websocket', session_id:sessionId }
+          })
+        });
+      } catch(err) {}
+    }
+
+    if(msg.metadata?.message_type === 'notification') {
+      const evt = msg.payload.event;
+      if(evt && msg.payload.subscription?.type === 'channel.channel_points_custom_reward_redemption.add') {
+        const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        addEventItem('redemption', {
+          user: evt.user_name,
+          reward: evt.reward?.title || 'Channel Points',
+          msg: evt.user_input || ''
+        }, t);
+      }
+    }
+  };
+
+  eventSubWs.onclose = () => {
+    setTimeout(() => { if(window._chatToken) connectEventSub(window._chatToken); }, 5000);
   };
 }
 
