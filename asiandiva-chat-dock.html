@@ -127,11 +127,22 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
   </div>
   <div style="position:relative;">
     <div class="cmd-menu" id="cmd-menu"></div>
+    <div id="emote-picker" style="display:none;background:#17102b;border:1.5px solid #2e1e50;border-radius:12px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2e1e50;">
+        <span style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#9B7BB8;">Your Twitch Emotes</span>
+        <span id="emote-count" style="font-size:9px;color:#FFD93D;font-weight:800;">0 emotes</span>
+      </div>
+
+      <div id="emote-grid" style="display:flex;flex-wrap:wrap;gap:4px;max-height:180px;overflow-y:auto;">
+        <div style="font-size:11px;color:#4A2870;font-style:italic;padding:10px;">Connect to load emotes…</div>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;margin-top:10px;padding:10px 12px;background:#0f0a1e;border-radius:10px;border:1px solid #2e1e50;align-items:center;">
     <input id="chat-input" type="text" placeholder="Type / for commands…" maxlength="500"
       oninput="handleInput(this.value)"
       onkeydown="handleKeydown(event)"
       style="flex:1;background:transparent;border:none;color:#F5E6FF;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;outline:none;"/>
+    <button class="emote-toggle-btn" onclick="toggleEmotePicker()" title="Emote Picker">😊</button>
     <button id="send-btn" onclick="sendMessage()" disabled
       style="padding:7px 14px;background:#17102b;border:1px solid #2e1e50;border-radius:8px;color:#FFD93D;font-family:'Fredoka One',sans-serif;font-size:0.8rem;letter-spacing:1px;cursor:pointer;flex-shrink:0;opacity:0.3;transition:all 0.2s;">Send</button>
     </div>
@@ -170,6 +181,7 @@ function connectIRC(token) {
 
       if(line.includes('366') || line.includes('JOIN #asiandiva__')) {
         ircConnected = true;
+        loadDockEmotes().then(() => { if(emotePickerOpen) renderEmoteGrid(''); });
         const btn = document.getElementById('send-btn');
         if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
         document.getElementById('chat-dot').className = 'wdot live';
@@ -234,12 +246,146 @@ function colorForUser(name) {
   return colors[Math.abs(hash) % colors.length];
 }
 
+// ── EMOTE SUPPORT ─────────────────────────────────────────────────
+const dockEmoteMap = {};
+let dockChannelId = null;
+
+async function loadDockEmotes() {
+  if(!window._chatToken) return;
+
+  // Get broadcaster's Twitch emotes using the API
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/chat/emotes?broadcaster_id=716266770', {
+      headers: {
+        'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2',
+        'Authorization': 'Bearer ' + window._chatToken
+      }
+    });
+    if(r.ok) {
+      const d = await r.json();
+      (d.data||[]).forEach(e => {
+        dockEmoteMap[e.name] = e.images.url_1x;
+      });
+    }
+  } catch(e) {}
+
+  // Also load global Twitch emotes
+  try {
+    const r = await fetch('https://api.twitch.tv/helix/chat/emotes/global', {
+      headers: {
+        'Client-Id': 'c76fsghzngwflbmg06o6c9hj2ffub2',
+        'Authorization': 'Bearer ' + window._chatToken
+      }
+    });
+    if(r.ok) {
+      const d = await r.json();
+      (d.data||[]).forEach(e => {
+        dockEmoteMap[e.name] = e.images.url_1x;
+      });
+    }
+  } catch(e) {}
+}
+
+function renderDockMessage(text, emoteTags) {
+  // Twitch emotes from IRC tags
+  const twitchPos = {};
+  if(emoteTags) {
+    emoteTags.split('/').forEach(part => {
+      const [id, positions] = part.split(':');
+      if(!positions) return;
+      positions.split(',').forEach(pos => {
+        const [start, end] = pos.split('-').map(Number);
+        twitchPos[start] = { end, url: 'https://static-cdn.jtvnw.net/emoticons/v2/'+id+'/default/dark/1.0' };
+      });
+    });
+  }
+
+  if(Object.keys(twitchPos).length > 0) {
+    let result = '', i = 0;
+    const chars = [...text];
+    while(i < chars.length) {
+      if(twitchPos[i]) {
+        const {end, url} = twitchPos[i];
+        result += dockEmoteImg(url, chars.slice(i, end+1).join(''));
+        i = end + 1;
+      } else {
+        result += escHtml(chars[i]); i++;
+      }
+    }
+    return result;
+  }
+
+  return text.split(' ').map(word => {
+    if(dockEmoteMap[word]) return dockEmoteImg(dockEmoteMap[word], word);
+    return escHtml(word);
+  }).join(' ');
+}
+
+function dockEmoteImg(url, alt) {
+  return '<img src="'+url+'" alt="'+escHtml(alt)+'" title="'+escHtml(alt)+'" style="height:18px;width:auto;vertical-align:middle;margin:0 1px;" />';
+}
+
+// ── EMOTE PICKER ─────────────────────────────────────────────────
+let emotePickerOpen = false;
+
+function toggleEmotePicker() {
+  const picker = document.getElementById('emote-picker');
+  emotePickerOpen = !emotePickerOpen;
+  picker.style.display = emotePickerOpen ? 'block' : 'none';
+  if(emotePickerOpen) renderEmoteGrid('');
+  hideCmdMenu();
+}
+
+function renderEmoteGrid(search) {
+  const grid  = document.getElementById('emote-grid');
+  const count = document.getElementById('emote-count');
+  const keys  = Object.keys(dockEmoteMap).filter(k => !search || k.toLowerCase().includes(search.toLowerCase()));
+  count.textContent = keys.length + ' emotes';
+  if(!keys.length) {
+    grid.innerHTML = '<div class="emote-empty">' + (search ? 'No emotes found' : 'Loading…') + '</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  keys.slice(0, 200).forEach(name => {
+    const btn = document.createElement('button');
+    btn.title = name;
+    btn.style.cssText = 'background:transparent;border:1px solid transparent;border-radius:8px;padding:5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all 0.15s;';
+    btn.onmouseover = () => { btn.style.background='rgba(255,217,61,0.1)'; btn.style.borderColor='rgba(255,217,61,0.3)'; };
+    btn.onmouseout  = () => { btn.style.background='transparent'; btn.style.borderColor='transparent'; };
+    btn.onclick = () => insertEmote(name);
+    btn.innerHTML = '<img src="' + dockEmoteMap[name] + '" alt="' + name + '" style="width:28px;height:28px;object-fit:contain;"/>' +
+      '<span style="font-size:7px;color:#9B7BB8;font-weight:800;max-width:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtml(name) + '</span>';
+    grid.appendChild(btn);
+  });
+}
+
+function insertEmote(name) {
+  const input = document.getElementById('chat-input');
+  const pos   = input.selectionStart;
+  const val   = input.value;
+  const before = val.slice(0, pos);
+  const after  = val.slice(pos);
+  const space  = before.length > 0 && !before.endsWith(' ') ? ' ' : '';
+  input.value  = before + space + name + ' ' + after;
+  input.focus();
+  const newPos = (before + space + name + ' ').length;
+  input.setSelectionRange(newPos, newPos);
+}
+
+// close emote picker when clicking outside
+document.addEventListener('click', (e) => {
+  if(emotePickerOpen && !e.target.closest('#emote-picker') && !e.target.closest('.emote-toggle-btn')) {
+    document.getElementById('emote-picker').style.display = 'none';
+    emotePickerOpen = false;
+  }
+});
+
 function sendIRC(text) {
   if(!ircConnected || !ircWs) return false;
   ircWs.send('PRIVMSG #asiandiva__ :' + text);
   // local echo
   const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  addLogItem('AsianDiva__', text, '#FFD93D', false, t);
+  addLogItem('AsianDiva__', renderDockMessage(text, ''), '#FFD93D', false, t);
   return true;
 }
 const BROADCASTER_ID = '716266770';
@@ -384,7 +530,7 @@ function addLogItem(username, text, color, isMention, time) {
   item.innerHTML =
     '<span class="log-name" style="color:' + (color||'#FFD93D') + '">' + escHtml(username) + '</span>' +
     '<span class="log-colon">:</span>' +
-    '<span class="log-msg">' + text + '</span>' +
+    '<span class="log-msg" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">' + text + '</span>' +
     '<span class="log-time">' + time + '</span>';
   list.appendChild(item);
   while(list.children.length > 200) list.removeChild(list.firstChild);
