@@ -176,16 +176,14 @@ body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
   <div class="conn-status"><div class="wdot" id="tw-dot"></div><span id="tw-status">Not connected</span></div>
 </div>
 
-<!-- HYPE TRAIN -->
+<!-- HYPE TRAIN TEST -->
 <div class="card">
   <div class="card-lbl">🚂 Hype Train Mode</div>
-  <div style="font-size:0.62rem;color:var(--muted);margin-bottom:10px;line-height:1.6;">
-    Auto-connects via overlay URL. No action needed here.
-  </div>
+  <div style="font-size:0.62rem;color:var(--muted);margin-bottom:10px;line-height:1.6;">Connected automatically with your Twitch connection.</div>
   <div class="btn-row">
-    <button class="btn-g" onclick="sendCmd('test_ht')" style="flex:1;">🚂 Test</button>
+    <button class="btn-g" onclick="sendCmd('test_ht')" style="flex:1;">🚂 Test Hype Train</button>
   </div>
-  <div class="conn-status" style="margin-top:8px;"><div class="wdot" id="ht-dot"></div><span id="ht-status">Waiting for overlay…</span></div>
+  <div class="conn-status" style="margin-top:8px;"><div class="wdot" id="ht-dot"></div><span id="ht-status">Waiting…</span></div>
 </div>
 
 <script>
