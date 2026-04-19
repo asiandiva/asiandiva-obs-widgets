@@ -195,6 +195,9 @@ function connectIRC(token) {
       if(line.includes('366') || line.includes('JOIN #asiandiva__')) {
         ircConnected = true;
         if(emotePickerOpen) renderEmoteGrid('');
+        // debug: show emote map size
+        console.log('IRC connected. Emote map size:', Object.keys(dockEmoteMap).length);
+        console.log('Sample emotes:', Object.keys(dockEmoteMap).slice(0,5));
         const btn = document.getElementById('send-btn');
         if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
         document.getElementById('chat-dot').className = 'wdot live';
@@ -310,6 +313,7 @@ async function loadDockEmotes() {
 let dockEmoteById = {};
 
 function renderDockMessage(text, emoteTags) {
+  console.log('renderDockMessage:', text, '| emoteTags:', emoteTags, '| emoteMapSize:', Object.keys(dockEmoteMap).length);
   // Twitch emotes from IRC tags
   const twitchPos = {};
   if(emoteTags) {
