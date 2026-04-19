@@ -102,6 +102,11 @@ body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 .wdot.err  { background:var(--pink); }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 
+@keyframes hype-glow {
+  0%,100% { box-shadow: 0 0 10px rgba(255,217,61,0.3); }
+  50%      { box-shadow: 0 0 24px rgba(255,107,157,0.5); }
+}
+
 /* overlay status indicator */
 .overlay-status { display:flex; align-items:center; justify-content:center; gap:6px; font-size:0.55rem; color:var(--dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; padding:6px; background:var(--bg2); border-radius:8px; border:1px solid var(--border); }
 </style>
@@ -176,12 +181,27 @@ body::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
   <div class="conn-status"><div class="wdot" id="tw-dot"></div><span id="tw-status">Not connected</span></div>
 </div>
 
-<!-- HYPE TRAIN TEST -->
+<!-- HYPE TRAIN -->
 <div class="card">
   <div class="card-lbl">🚂 Hype Train Mode</div>
-  <div style="font-size:0.62rem;color:var(--muted);margin-bottom:10px;line-height:1.6;">Connected automatically with your Twitch connection.</div>
+
+  <!-- ALERT shows when train is active -->
+  <div id="ht-alert" style="display:none; background:linear-gradient(135deg,rgba(255,217,61,0.12),rgba(255,107,157,0.12)); border:1.5px solid var(--yellow); border-radius:10px; padding:12px 14px; margin-bottom:10px; animation:hype-glow 1.2s ease-in-out infinite;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-family:'Fredoka One',sans-serif;font-size:0.9rem;background:linear-gradient(90deg,var(--yellow),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">🚂 Hype Train!</span>
+      <span style="font-family:'Fredoka One',sans-serif;font-size:0.85rem;color:var(--yellow);" id="ht-level-display">Level 1</span>
+    </div>
+    <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;margin-bottom:5px;">
+      <div id="ht-prog-fill" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--yellow),var(--pink));transition:width 0.8s ease;width:0%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.55rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">
+      <span id="ht-prog-pct">0%</span>
+      <span id="ht-expiry">—</span>
+    </div>
+  </div>
+
   <div class="btn-row">
-    <button class="btn-g" onclick="sendCmd('test_ht')" style="flex:1;">🚂 Test Hype Train</button>
+    <button class="btn-g" onclick="sendCmd('test_ht')" style="flex:1;">🚂 Test</button>
   </div>
   <div class="conn-status" style="margin-top:8px;"><div class="wdot" id="ht-dot"></div><span id="ht-status">Waiting…</span></div>
 </div>
@@ -238,6 +258,17 @@ BC.onmessage = (e) => {
 
   if(msg.type === 'ht_status') {
     setHtDot(msg.state, msg.text);
+  }
+
+  if(msg.type === 'ht_begin' || msg.type === 'ht_progress') {
+    showHtAlert(msg.level, msg.pct, msg.ended);
+  }
+
+  if(msg.type === 'ht_end') {
+    showHtAlert(msg.level, 100, true);
+    setTimeout(() => {
+      document.getElementById('ht-alert').style.display = 'none';
+    }, 8000);
   }
 
   if(msg.type === 'reset_done') {
@@ -315,6 +346,16 @@ function setTwDot(state, text) {
 function setHtDot(state, text) {
   document.getElementById('ht-dot').className = 'wdot' + (state==='live'?' live':state==='conn'?' conn':state==='err'?' err':'');
   document.getElementById('ht-status').textContent = text;
+}
+
+function showHtAlert(level, pct, ended) {
+  const alert = document.getElementById('ht-alert');
+  alert.style.display = 'block';
+  document.getElementById('ht-level-display').textContent = ended ? 'Level ' + level + ' — Done!' : 'Level ' + level;
+  document.getElementById('ht-prog-fill').style.width = Math.round(pct) + '%';
+  document.getElementById('ht-prog-pct').textContent = Math.round(pct) + '%';
+  document.getElementById('ht-expiry').textContent = ended ? '🎉 Complete!' : 'In progress…';
+  alert.style.animation = ended ? 'none' : 'hype-glow 1.2s ease-in-out infinite';
 }
 </script>
 </body>
