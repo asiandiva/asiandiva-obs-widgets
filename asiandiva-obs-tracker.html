@@ -580,6 +580,9 @@ BC.onmessage = (e) => {
   if(msg.type==='test_ht')      { testHypeTrain(); }
 };
 
+// ── PING overlay alive so dock knows it's running ─────────────────
+setInterval(() => { try { BC.postMessage({ type:'ping' }); } catch(e){} }, 3000);
+
 // hype decay
 setInterval(() => { if(hype>0){ hype=Math.max(0,hype-HYPE_DECAY); updateHype(); } }, 1000);
 
@@ -794,6 +797,15 @@ function setStatus(state,text){
 
 // ── HYPE TRAIN MODE ───────────────────────────────────────────────
 let htWs=null, htConnected=false, htActive=false;
+
+// Check URL params for hype train credentials (fallback if BC fails)
+(function() {
+  const p = new URLSearchParams(window.location.search);
+  const hc = p.get('ht_client'), ht = p.get('ht_token'), hu = p.get('ht_uid');
+  if(hc && ht && hu) {
+    setTimeout(() => { htClientId=hc; htToken=ht; htUid=hu; startHtWS(); }, 2000);
+  }
+})();
 let htClientId='', htToken='', htUid='';
 let htCountdownInterval=null, htCurrentLevel=0;
 
