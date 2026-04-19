@@ -157,14 +157,16 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
 
-// Read token from URL on startup and load emotes immediately
+// Read token from URL on startup - load emotes then connect IRC
 (function() {
   const p = new URLSearchParams(window.location.search);
   const tok = p.get('token');
   if(tok) {
     window._chatToken = tok;
-    // load emotes right away so they're ready when chat starts
-    setTimeout(loadDockEmotes, 500);
+    // load emotes first, then connect IRC so emotes are ready for messages
+    loadDockEmotes().then(() => {
+      if(!ircConnected) connectIRC(tok);
+    });
   }
 })();
 
@@ -192,11 +194,7 @@ function connectIRC(token) {
 
       if(line.includes('366') || line.includes('JOIN #asiandiva__')) {
         ircConnected = true;
-        // grab token from URL directly - no need to wait for BC
-        const urlParams = new URLSearchParams(window.location.search);
-        const tok = urlParams.get('token');
-        if(tok) window._chatToken = tok;
-        loadDockEmotes().then(() => { if(emotePickerOpen) renderEmoteGrid(''); });
+        if(emotePickerOpen) renderEmoteGrid('');
         const btn = document.getElementById('send-btn');
         if(btn) { btn.disabled=false; btn.style.opacity='1'; btn.style.borderColor='#FFD93D'; }
         document.getElementById('chat-dot').className = 'wdot live';
@@ -513,6 +511,8 @@ BC.onmessage = (e) => {
     window._chatToken = msg.token;
     fetchStreamInfo();
     setInterval(fetchStreamInfo, 60000);
+    // IRC already connected via URL token; just update emotes if not loaded
+    if(Object.keys(dockEmoteMap).length === 0) loadDockEmotes();
     if(!ircConnected) connectIRC(msg.token);
   }
 
