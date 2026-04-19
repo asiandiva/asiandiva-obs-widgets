@@ -721,7 +721,12 @@ function connectWS() {
         await sub(sid,'channel.cheer',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscribe',{broadcaster_user_id:uid});
         await sub(sid,'channel.subscription.gift',{broadcaster_user_id:uid});
+        await sub(sid,'channel.hype_train.begin',{broadcaster_user_id:uid});
+        await sub(sid,'channel.hype_train.progress',{broadcaster_user_id:uid});
+        await sub(sid,'channel.hype_train.end',{broadcaster_user_id:uid});
         connected=true; setStatus('live','Live — tracking');
+        htConnected=true;
+        BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
         startSessionTimer();
       }catch{
         setStatus('err','Auth failed — check credentials'); ws.close();
@@ -741,6 +746,9 @@ function connectWS() {
         const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
         const gUser=ev.user_name||'Someone'; addRevenue(rate*ev.total,HYPE_GAIN.gift*ev.total,'sub','🎁 '+gUser+' gifted '+ev.total+' subs!', gUser+' just gifted '+ev.total+' sub'+(ev.total>1?'s':''), gUser, 0, rate*ev.total, ev.total);
       }
+      if(st==='channel.hype_train.begin')    enterHypeTrainMode(ev.level,ev.progress,ev.goal,ev.expires_at);
+      if(st==='channel.hype_train.progress') updateHypeTrainMode(ev.level,ev.progress,ev.goal,ev.expires_at);
+      if(st==='channel.hype_train.end')      endHypeTrainMode(ev.level);
     }
   };
   ws.onerror=()=>setStatus('err','Connection error');
