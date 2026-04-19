@@ -824,9 +824,10 @@ function startHtWS(){
         await htSub(sid,'channel.hype_train.end',{broadcaster_user_id:htUid});
         htConnected=true;
         setHtDot('live','Live — watching for hype trains');
+        BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
       }catch{
         setHtDot('err','Auth failed — check credentials');
-        BC.postMessage({type:'ht_status',state:'err',text:'Auth failed — check credentials'});
+        BC.postMessage({type:'ht_status', state:'err', text:'Auth failed — check credentials'});
       }
     }
     if(mt==='notification'){
@@ -837,7 +838,7 @@ function startHtWS(){
     }
   };
   htWs.onclose=()=>{
-    if(htConnected){setHtDot('conn','Reconnecting…');setTimeout(startHtWS,5000);}
+    if(htConnected){setHtDot('conn','Reconnecting…');BC.postMessage({type:'ht_status',state:'conn',text:'Reconnecting…'});setTimeout(startHtWS,5000);}
   };
 }
 
