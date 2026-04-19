@@ -157,6 +157,8 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 const BC = new BroadcastChannel('asiandiva-chat');
 let logCount = 0;
 
+// ── ALL VARIABLE DECLARATIONS UP FRONT ───────────────────────────
+
 // Read token from URL on startup
 (function() {
   const p = new URLSearchParams(window.location.search);
@@ -169,8 +171,6 @@ let logCount = 0;
 })();
 
 // ── IRC CONNECTION (read + send) ─────────────────────────────────
-let ircWs = null, ircConnected = false, ircToken = null;
-const DOCK_MENTION_WORDS = ['asiandiva__', 'asiandiva', 'dave', '@asiandiva__', '@asiandiva', '@dave'];
 
 function connectIRC(token) {
   ircToken = token;
@@ -266,8 +266,6 @@ function colorForUser(name) {
 }
 
 // ── EMOTE SUPPORT ─────────────────────────────────────────────────
-const dockEmoteMap = {};
-let dockChannelId = null;
 
 async function loadDockEmotes() {
   if(!window._chatToken) return;
@@ -312,7 +310,6 @@ async function loadDockEmotes() {
   } catch(e) {}
 }
 
-let dockEmoteById = {};
 
 function renderDockMessage(text, emoteTags) {
   // Build position → {end, id} map from IRC emote tags
@@ -361,7 +358,6 @@ function dockEmoteImg(url, alt) {
 }
 
 // ── EMOTE PICKER ─────────────────────────────────────────────────
-let emotePickerOpen = false;
 
 function toggleEmotePicker() {
   const picker = document.getElementById('emote-picker');
@@ -420,9 +416,6 @@ function sendIRC(text) {
   ircWs.send('PRIVMSG #asiandiva__ :' + text);
   return true;
 }
-const BROADCASTER_ID = '716266770';
-let streamStartTime = null;
-let uptimeInterval = null;
 
 function editTitle() {
   const txt = document.getElementById('stream-title');
@@ -637,8 +630,6 @@ const COMMANDS = [
   { name:'/me',          desc:'Action message',          usage:'/me [message]',         action:'me' },
 ];
 
-let activeCmd = -1;
-let filteredCmds = [];
 
 function handleInput(val) {
   if (val.startsWith('/')) {
