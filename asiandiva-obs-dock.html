@@ -284,6 +284,23 @@ BC.onmessage = (e) => {
   }
 };
 
+// ── AUTO CONNECT FROM URL PARAMS ─────────────────────────────────
+window.addEventListener('load', () => {
+  const p = new URLSearchParams(window.location.search);
+  const clientId = p.get('client_id') || '';
+  const token    = p.get('token')     || '';
+  const uid      = p.get('uid')       || '';
+  if(clientId && token && uid) {
+    document.getElementById('in-client').value = clientId;
+    document.getElementById('in-token').value  = token;
+    document.getElementById('in-uid').value    = uid;
+    setTimeout(() => {
+      BC.postMessage({ type:'connect', clientId, token, uid });
+      setTwDot('conn', 'Connecting…');
+    }, 1500);
+  }
+});
+
 // ── SEND COMMANDS TO OVERLAY ──────────────────────────────────────
 function sendConnect() {
   const clientId = document.getElementById('in-client').value.trim();
