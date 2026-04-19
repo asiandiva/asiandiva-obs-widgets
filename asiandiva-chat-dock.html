@@ -127,11 +127,6 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
   </div>
   <div style="position:relative;">
     <div class="cmd-menu" id="cmd-menu"></div>
-    <div id="emote-picker" style="display:none;background:#17102b;border:1.5px solid #2e1e50;border-radius:12px;padding:12px;margin-bottom:8px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2e1e50;">
-        <span style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#9B7BB8;">Your Twitch Emotes</span>
-        <span id="emote-count" style="font-size:9px;color:#FFD93D;font-weight:800;">0 emotes</span>
-      </div>
 
       <div id="emote-grid" style="display:flex;flex-wrap:wrap;gap:4px;max-height:180px;overflow-y:auto;">
         <div style="font-size:11px;color:#4A2870;font-style:italic;padding:10px;">Connect to load emotes…</div>
@@ -142,7 +137,6 @@ body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
       oninput="handleInput(this.value)"
       onkeydown="handleKeydown(event)"
       style="flex:1;background:transparent;border:none;color:#F5E6FF;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;outline:none;"/>
-    <button class="emote-toggle-btn" onclick="toggleEmotePicker()" title="Emote Picker">😊</button>
     <button id="send-btn" onclick="sendMessage()" disabled
       style="padding:7px 14px;background:#17102b;border:1px solid #2e1e50;border-radius:8px;color:#FFD93D;font-family:'Fredoka One',sans-serif;font-size:0.8rem;letter-spacing:1px;cursor:pointer;flex-shrink:0;opacity:0.3;transition:all 0.2s;">Send</button>
     </div>
@@ -233,8 +227,9 @@ function connectIRC(token) {
           addLogItem(username, text, emoteTags, userColor, isMention, t);
           
           // detect channel point redemptions via IRC tag
-          if(tags['custom-reward-id']) {
-            addEventItem('redemption', {user:username, reward:'Channel Point Redemption', msg:text}, t);
+          const rewardId = tagMatch ? (() => { const tgs={}; tagMatch[1].split(';').forEach(t=>{const[k,...v]=t.split('=');tgs[k]=v.join('=');}); return tgs['custom-reward-id']; })() : null;
+          if(rewardId) {
+            addEventItem('redemption', {user:username, reward:'Channel Points Redeemed', msg:text}, t);
           }
         } catch(e) {}
       }
@@ -367,15 +362,6 @@ function dockEmoteImg(url, alt) {
   return '<img src="'+url+'" alt="'+escHtml(alt)+'" title="'+escHtml(alt)+'" style="height:18px;width:auto;vertical-align:middle;margin:0 1px;" />';
 }
 
-// ── EMOTE PICKER ─────────────────────────────────────────────────
-
-function toggleEmotePicker() {
-  const picker = document.getElementById('emote-picker');
-  emotePickerOpen = !emotePickerOpen;
-  picker.style.display = emotePickerOpen ? 'block' : 'none';
-  if(emotePickerOpen) renderEmoteGrid('');
-  hideCmdMenu();
-}
 
 function renderEmoteGrid(search) {
   const grid  = document.getElementById('emote-grid');
