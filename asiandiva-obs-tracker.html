@@ -803,7 +803,11 @@ let htWs=null, htConnected=false, htActive=false;
   const p = new URLSearchParams(window.location.search);
   const hc = p.get('ht_client'), ht = p.get('ht_token'), hu = p.get('ht_uid');
   if(hc && ht && hu) {
-    setTimeout(() => { htClientId=hc; htToken=ht; htUid=hu; startHtWS(); }, 2000);
+    setTimeout(() => { htClientId=hc; htToken=ht; htUid=hu; startHtWS(); }, 3000);
+    // broadcast status every 5s so dock always knows
+    setInterval(() => {
+      if(htConnected) BC.postMessage({type:'ht_status', state:'live', text:'Live — watching for hype trains'});
+    }, 5000);
   }
 })();
 let htClientId='', htToken='', htUid='';
