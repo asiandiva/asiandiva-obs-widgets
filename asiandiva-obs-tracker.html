@@ -733,7 +733,7 @@ function connectWS() {
     }
   };
   ws.onerror=()=>setStatus('err','Connection error');
-  ws.onclose=()=>{ if(connected){connected=false;setStatus('conn','Reconnecting…');setTimeout(connectWS,5000);} };
+  ws.onclose=()=>{ if(connected){connected=false;setTimeout(connectWS,5000);} };
 
   // Connect to backend SSE server for bits/subs/resubs/giftsubs
   connectBackendSSE();
@@ -782,7 +782,6 @@ function connectBackendSSE() {
   };
 
   sseSource.onerror = () => {
-    console.log('SSE error - reconnecting in 5s');
     sseSource.close();
     setTimeout(connectBackendSSE, 5000);
   };
