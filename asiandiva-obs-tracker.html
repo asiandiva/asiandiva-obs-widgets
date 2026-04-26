@@ -594,7 +594,7 @@ setInterval(() => { if(hype>0){ hype=Math.max(0,hype-HYPE_DECAY); updateHype(); 
 
 function addRevenue(amount, hypeGain, popType, popText, activityText, user, rawBits, revEarned, giftCount) {
   const wasUnder = revenue < REVENUE_GOAL;
-  revenue = Math.min(revenue+amount, REVENUE_GOAL*10);
+  revenue = revenue + amount; // no cap - keep tracking past goal
   hype    = Math.min(HYPE_MAX, hype+hypeGain);
 
   // update session stats
@@ -650,7 +650,7 @@ function updateGoalBar() {
   const fill = document.getElementById('goal-fill');
   fill.style.width = pct+'%';
   if(revenue>=REVENUE_GOAL) fill.classList.add('complete');
-  BC.postMessage({ type:'revenue', display:'$'+Math.min(revenue,REVENUE_GOAL).toFixed(2), pct });
+  BC.postMessage({ type:'revenue', display:'$'+revenue.toFixed(2), pct });
 }
 
 function updateHype() {
