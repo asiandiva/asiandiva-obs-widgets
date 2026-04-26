@@ -751,6 +751,8 @@ function connectBackendSSE() {
       const ev = JSON.parse(e.data);
       if(ev.type === 'connected') { console.log('✅ Backend SSE connected'); return; }
 
+      // ignore events replayed from before this session
+      if(ev._ts && ev._ts < sessionStartTime) return;
       if(ev.type === 'bits') {
         const b=ev.bits, g=b>=500?HYPE_GAIN.bits_lg:b>=100?HYPE_GAIN.bits_md:HYPE_GAIN.bits_sm;
         const src=ev.source==='blerp'?' (Blerp)':'';
@@ -807,9 +809,12 @@ function startConfetti(){
 }
 function stopConfetti(){if(cAnim)cancelAnimationFrame(cAnim);const c=document.getElementById('confetti-canvas');c.getContext('2d').clearRect(0,0,c.width,c.height);c.style.display='none';}
 
+let sessionStartTime = Date.now();
+
 function resetAll(){
   revenue=0;hype=0;goalHit=false;lastLevel='chill';
   totalBitsCount=0; totalSubsCount=0;
+  sessionStartTime = Date.now(); // mark new session start
   document.getElementById('goal-fill').style.width='0%';
   document.getElementById('goal-fill').classList.remove('complete');
   document.getElementById('goal-overlay').style.display='none';
@@ -818,6 +823,9 @@ function resetAll(){
   BC.postMessage({ type:'reset_done' });
   BC.postMessage({ type:'revenue', display:'$0.00', pct:0 });
   BC.postMessage({ type:'stats', bits:0, subs:0 });
+  // clear backend server event buffer
+  fetch('https://asiandiva-bits-tracker.onrender.com/reset', { method:'POST' })
+    .catch(()=>{});
 }
 
 function setStatus(state,text){
