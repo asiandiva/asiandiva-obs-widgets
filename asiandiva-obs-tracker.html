@@ -570,6 +570,12 @@ let sessionStart=null, timerInterval=null;
 const BC = new BroadcastChannel('asiandiva-tracker');
 
 BC.onmessage = (e) => {
+  // Blerp bits from chat overlay
+  if(e.data?.type === 'blerp_bits') {
+    const b=e.data.bits, g=b>=500?HYPE_GAIN.bits_lg:b>=100?HYPE_GAIN.bits_md:HYPE_GAIN.bits_sm;
+    addRevenue(b*RATES.bits,g,'bits','⚡ +'+b+' Blerp bits', e.data.user+' used '+b+' Blerp bits!', e.data.user, b, b*RATES.bits, 0);
+    return;
+  }
   const msg = e.data;
   if(msg.type==='connect')      { clientId=msg.clientId; token=msg.token; uid=msg.uid; if(connected){disconnectWS();} connectWS(); }
   if(msg.type==='disconnect')   { disconnectWS(); }
@@ -718,44 +724,58 @@ function connectWS() {
     if(mt==='session_welcome'){
       const sid=msg.payload.session.id;
       try{
-        await sub(sid,'channel.cheer',{broadcaster_user_id:uid});
-        await sub(sid,'channel.subscribe',{broadcaster_user_id:uid});
-        await sub(sid,'channel.subscription.message',{broadcaster_user_id:uid});
-        await sub(sid,'channel.subscription.gift',{broadcaster_user_id:uid});
         connected=true; setStatus('live','Live — tracking');
         startSessionTimer();
-        // connect hype train via PubSub (more reliable for client-side)
         startHypePubSub(token, uid);
       }catch{
         setStatus('err','Auth failed — check credentials'); ws.close();
       }
     }
-    if(mt==='notification'){
-      const st=msg.metadata.subscription_type, ev=msg.payload.event;
-      if(st==='channel.cheer'){
-        const b=ev.bits, g=b>=500?HYPE_GAIN.bits_lg:b>=100?HYPE_GAIN.bits_md:HYPE_GAIN.bits_sm;
-        const bUser=ev.user_name||'Anonymous'; addRevenue(b*RATES.bits,g,'bits','+'+b+' bits', bUser+' just gave '+b+' bits', bUser, b, b*RATES.bits, 0);
-      }
-      if(st==='channel.subscribe'&&!ev.is_gift){
-        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
-        addRevenue(rate,HYPE_GAIN.sub,'sub','⭐ '+ev.user_name+' subbed!', ev.user_name+' just subscribed (Tier '+tier+')', ev.user_name, 0, rate, 1);
-      }
-      if(st==='channel.subscription.message'){
-        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
-        const months=ev.cumulative_months||1;
-        addRevenue(rate,HYPE_GAIN.sub,'sub','⭐ '+ev.user_name+' resubbed!', ev.user_name+' resubscribed for '+months+' months! (Tier '+tier+')', ev.user_name, 0, rate, 1);
-      }
-      if(st==='channel.subscription.gift'){
-        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
-        const gUser=ev.user_name||'Someone'; addRevenue(rate*ev.total,HYPE_GAIN.gift*ev.total,'sub','🎁 '+gUser+' gifted '+ev.total+' subs!', gUser+' just gifted '+ev.total+' sub'+(ev.total>1?'s':''), gUser, 0, rate*ev.total, ev.total);
-      }
-      if(st==='channel.hype_train.begin')    enterHypeTrainMode(ev.level,ev.progress,ev.goal,ev.expires_at);
-      if(st==='channel.hype_train.progress') updateHypeTrainMode(ev.level,ev.progress,ev.goal,ev.expires_at);
-      if(st==='channel.hype_train.end')      endHypeTrainMode(ev.level);
-    }
   };
   ws.onerror=()=>setStatus('err','Connection error');
   ws.onclose=()=>{ if(connected){connected=false;setStatus('conn','Reconnecting…');setTimeout(connectWS,5000);} };
+
+  // Connect to backend SSE server for bits/subs/resubs/giftsubs
+  connectBackendSSE();
+}
+
+// ── BACKEND SSE CONNECTION ────────────────────────────────────────
+let sseSource = null;
+
+function connectBackendSSE() {
+  if(sseSource) sseSource.close();
+  sseSource = new EventSource('https://asiandiva-bits-tracker.onrender.com/events');
+
+  sseSource.onmessage = (e) => {
+    try {
+      const ev = JSON.parse(e.data);
+      if(ev.type === 'connected') { console.log('✅ Backend SSE connected'); return; }
+
+      if(ev.type === 'bits') {
+        const b=ev.bits, g=b>=500?HYPE_GAIN.bits_lg:b>=100?HYPE_GAIN.bits_md:HYPE_GAIN.bits_sm;
+        const src=ev.source==='blerp'?' (Blerp)':'';
+        addRevenue(b*RATES.bits,g,'bits','+'+b+' bits'+src, ev.user+' just gave '+b+' bits'+src, ev.user, b, b*RATES.bits, 0);
+      }
+      if(ev.type === 'sub') {
+        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
+        addRevenue(rate,HYPE_GAIN.sub,'sub','⭐ '+ev.user+' subbed!', ev.user+' just subscribed (Tier '+tier+')', ev.user, 0, rate, 1);
+      }
+      if(ev.type === 'resub') {
+        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
+        addRevenue(rate,HYPE_GAIN.sub,'sub','⭐ '+ev.user+' resubbed!', ev.user+' resubscribed for '+ev.months+' months!', ev.user, 0, rate, 1);
+      }
+      if(ev.type === 'giftsub') {
+        const tier=Math.round(parseInt(ev.tier)/1000), rate=tier===3?RATES.t3:tier===2?RATES.t2:RATES.t1;
+        addRevenue(rate*ev.count,HYPE_GAIN.gift*ev.count,'sub','🎁 '+ev.user+' gifted '+ev.count+' subs!', ev.user+' gifted '+ev.count+' sub'+(ev.count>1?'s':''), ev.user, 0, rate*ev.count, ev.count);
+      }
+    } catch(err) { console.error('SSE parse error:', err); }
+  };
+
+  sseSource.onerror = () => {
+    console.log('SSE error - reconnecting in 5s');
+    sseSource.close();
+    setTimeout(connectBackendSSE, 5000);
+  };
 }
 
 async function sub(sid,type,condition){
