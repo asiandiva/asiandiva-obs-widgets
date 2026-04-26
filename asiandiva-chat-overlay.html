@@ -467,6 +467,16 @@ function parseLine(line) {
       }
     }
 
+    // Blerp bot detection - reads Blerp chat message and extracts bits
+    if(username.toLowerCase() === 'blerp') {
+      const match = text.match(/(\S+)\s+played\s+.+?Blerp\s+for\s+(\d+)\s+bits?/i);
+      if(match) {
+        const blerp_user = match[1];
+        const blerp_bits = parseInt(match[2]);
+        BC.postMessage({ type:'blerp_bits', user:blerp_user, bits:blerp_bits });
+      }
+    }
+
     addMessage(username, text, color, emoteTags, isAction);
   } catch(e) {}
 }
