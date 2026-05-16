@@ -294,6 +294,37 @@ body { background: transparent; font-family: 'Nunito', sans-serif; overflow: hid
 
 
 
+/* hype progression message */
+#ht-hype-msg {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: linear-gradient(135deg, rgba(255,217,61,0.25), rgba(255,107,157,0.25));
+  border: 2px solid rgba(255,217,61,0.6);
+  border-radius: 16px;
+  padding: 12px 24px;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 1.6rem;
+  color: #FFD93D;
+  text-align: center;
+  white-space: nowrap;
+  display: none;
+  opacity: 0;
+  z-index: 20;
+  text-shadow: 0 0 20px rgba(255,217,61,0.8);
+  animation: none;
+}
+@keyframes hype-msg-in {
+  0%   { opacity:0; transform:translateX(-50%) translateY(-30px) scale(0.8); }
+  60%  { opacity:1; transform:translateX(-50%) translateY(0px) scale(1.05); }
+  100% { opacity:1; transform:translateX(-50%) translateY(0px) scale(1); }
+}
+@keyframes hype-msg-out {
+  0%   { opacity:1; transform:translateX(-50%) translateY(0px) scale(1); }
+  100% { opacity:0; transform:translateX(-50%) translateY(-20px) scale(0.9); }
+}
+
 /* level up flash */
 #ht-levelup-flash {
   display: none;
@@ -529,6 +560,9 @@ details summary::-webkit-details-marker { display: none; }
 
 
     <div class="ht-complete" id="ht-complete"></div>
+
+    <!-- HYPE PROGRESSION MESSAGE -->
+    <div id="ht-hype-msg">🚂 GAS UP THE TRAIN!</div>
 
     <!-- LEVEL UP FLASH (shows briefly on each level) -->
     <div id="ht-levelup-flash">
@@ -874,7 +908,7 @@ function startHypePubSub(token, broadcasterId) {
       const d = JSON.parse(msg.data.message);
       if(d.type === 'hype-train-start' || d.type === 'hype-train-progression') {
         const ht = d.data;
-        const level = ht.level?.value || 1;
+        const level = Math.max(1, ht.level?.value || 1);
         const progress = ht.progress?.value || 0;
         const goal = ht.progress?.goal || 1000;
         const expiry = new Date(Date.now() + (ht.expires_at ? new Date(ht.expires_at) - Date.now() : 90000)).toISOString();
@@ -890,6 +924,7 @@ function startHypePubSub(token, broadcasterId) {
 
   pubSubWs.onclose = () => {
     if(htConnected) {
+      htConnected = false;
       setTimeout(() => startHypePubSub(token, broadcasterId), 5000);
     }
   };
@@ -942,7 +977,7 @@ function startHtWS(){
     }
   };
   htWs.onclose=()=>{
-    if(htConnected){setHtDot('conn','Reconnecting…');BC.postMessage({type:'ht_status',state:'conn',text:'Reconnecting…'});setTimeout(startHtWS,5000);}
+    if(htConnected){htConnected=false;setTimeout(startHtWS,5000);}
   };
 }
 
@@ -978,10 +1013,47 @@ function enterHypeTrainMode(level,progress,goal,expiresAt){
   if(expiresAt) startHtCountdown(expiresAt);
 }
 
+// ── HYPE PROGRESSION MESSAGES ────────────────────────────────────
+const HYPE_MSGS = [
+  '🚂 GAS UP THE TRAIN!',
+  '⚡ KEEP IT GOING!',
+  '💜 PURGE SQUAD PURGE!',
+  "💛 LET'S GOOO!",
+  '🚀 FULL SEND!',
+];
+let lastHypeMsg = -1;
+let hypeMsgTimer = null;
+
+function showHypeMsg() {
+  // pick a random message that's different from last
+  let idx;
+  do { idx = Math.floor(Math.random() * HYPE_MSGS.length); } while(idx === lastHypeMsg);
+  lastHypeMsg = idx;
+
+  const el = document.getElementById('ht-hype-msg');
+  if(!el) return;
+
+  // clear any existing timer
+  if(hypeMsgTimer) clearTimeout(hypeMsgTimer);
+
+  el.textContent = HYPE_MSGS[idx];
+  el.style.display = 'block';
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = 'hype-msg-in 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards';
+
+  hypeMsgTimer = setTimeout(() => {
+    el.style.animation = 'hype-msg-out 0.4s ease forwards';
+    setTimeout(() => { el.style.display = 'none'; }, 400);
+  }, 2000);
+}
+
 // update bar + level — show level-up celebration if level changed
 function updateHypeTrainMode(level,progress,goal,expiresAt){
   if(level > htCurrentLevel && htCurrentLevel > 0){
     showLevelUpCelebration(level);
+  } else {
+    showHypeMsg(); // show random hype message on progression
   }
   htCurrentLevel=level;
   updateHypeTrainBar(level,progress,goal);
@@ -997,7 +1069,7 @@ function updateHypeTrainBar(level,progress,goal){
     lvlEl.classList.remove('level-up'); void lvlEl.offsetWidth; lvlEl.classList.add('level-up');
     setTimeout(()=>lvlEl.classList.remove('level-up'),400);
   }
-  lvlEl.textContent=level;
+  lvlEl.textContent=Math.max(1, level);
   document.getElementById('ht-fill').style.width=pct+'%';
   document.getElementById('ht-train').style.left=Math.max(pct,5)+'%';
 }
